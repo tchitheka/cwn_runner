@@ -1,0 +1,982 @@
+{
+  "version": "2026-10-29-runner3-1m-allindicators",
+  "topology": {
+    "gateway": "runs the WAN faults (enx00e04c507970), reached through AP1",
+    "AP1": "192.168.1.100 (wired to gateway; management route, never a fault target)",
+    "AP2": "192.168.1.101 (mesh-connected; fault target)",
+    "station": "takondwa@192.168.1.11"
+  },
+  "defaults": {
+    "catch_trials": 2,
+    "baseline_s": 30
+  },
+  "scenarios": [
+    {
+      "id": "BW-SAT",
+      "name": "Gateway Upload / Download Rate",
+      "primary_condition": "Capacity exhaustion",
+      "temporal": "Sustained",
+      "ground_truth": "Link utilisation and throughput",
+      "h4_type": "progressive",
+      "host": "Station 192.168.1.11 to gateway 192.168.1.1 (iperf3, local only)",
+      "window_s": 180,
+      "min_recovery_s": 60,
+      "script_status": "needs_review",
+      "order": null,
+      "launch": "./bw_sat_test.sh <rate_mbps> <minutes> takondwa@192.168.1.11 up",
+      "verify": [
+        "Station: cat /tmp/bw_sat.log (iperf3 interval lines at the target rate)",
+        "Prometheus: rate(node_network_transmit_bytes_total{job=\"openwrt-ap1-node\",device=\"eth0\"}[1m]) * 8 / 1000000"
+      ],
+      "stop": "./stop_fault.sh bwsat takondwa@192.168.1.11",
+      "panel": "Gateway Upload / Download Rate (1 minute average rate)",
+      "gt_label": "AP1 eth0 throughput (Mbit/s)",
+      "notes": "Local iperf3 from the station to the gateway, so Internet bandwidth plays no part. The panel now uses a 1 minute rate, so it reaches the sent rate within about a minute of onset. Change the 5 in the launch command (Mbit/s) to suit the capacity variables.",
+      "runner": {
+        "auto": true,
+        "launch_cmd": "./bw_sat_test.sh 5 {minutes} takondwa@192.168.1.11 up",
+        "stop_cmd": "./stop_fault.sh bwsat takondwa@192.168.1.11",
+        "extra": [
+          "bwsat_pid",
+          "bw_up_mbps",
+          "bw_down_mbps"
+        ],
+        "onset": {
+          "probe": "bwsat_pid",
+          "op": "eq",
+          "mode": "abs",
+          "value": 1,
+          "consec": 1
+        },
+        "cleared": {
+          "probe": "bwsat_pid",
+          "op": "eq",
+          "mode": "abs",
+          "value": 0,
+          "consec": 1
+        },
+        "gt_probe": "bw_up_mbps",
+        "gt_dir": "up",
+        "preflight": [
+          [
+            "pid_dead",
+            "bwsat_pid"
+          ],
+          [
+            "ssh_ok",
+            "station"
+          ]
+        ]
+      },
+      "fault": "Bandwidth saturation"
+    },
+    {
+      "id": "DNS-FAIL",
+      "name": "DNS Resolution",
+      "primary_condition": "DNS service or resolution failure",
+      "temporal": "Sustained or repeated",
+      "ground_truth": "DNS failure rate",
+      "h4_type": "discrete",
+      "host": "Station 192.168.1.11 (as the script notes require)",
+      "window_s": 180,
+      "min_recovery_s": 60,
+      "script_status": "ready",
+      "order": null,
+      "launch": "./dns_fault_test.sh 3 takondwa@192.168.1.11",
+      "verify": [
+        "Station: dig +short cwn-fault-test.invalid  (expect NXDOMAIN)",
+        "Prometheus: node_dns_failure_ratio rises above baseline"
+      ],
+      "stop": "./stop_fault.sh dns takondwa@192.168.1.11",
+      "panel": "DNS Resolution (A: verdict Stable / Some failures / DNS failures)",
+      "gt_label": "DNS failure ratio (%)",
+      "notes": "Use dns_fault_test.sh (pidfile, randomised subdomain), not dns_fault_test2.sh. Confirm which AP the station is associated with.",
+      "runner": {
+        "auto": true,
+        "launch_cmd": "./dns_fault_test.sh {minutes} takondwa@192.168.1.11 broken.example",
+        "stop_cmd": "./stop_fault.sh dns takondwa@192.168.1.11",
+        "extra": [
+          "dns_pid",
+          "dns_fail_pct"
+        ],
+        "onset": {
+          "probe": "dns_pid",
+          "op": "eq",
+          "mode": "abs",
+          "value": 1,
+          "consec": 1
+        },
+        "cleared": {
+          "probe": "dns_pid",
+          "op": "eq",
+          "mode": "abs",
+          "value": 0,
+          "consec": 1
+        },
+        "gt_probe": "dns_fail_pct",
+        "gt_dir": "up",
+        "preflight": [
+          [
+            "pid_dead",
+            "dns_pid"
+          ],
+          [
+            "ssh_ok",
+            "station"
+          ]
+        ]
+      },
+      "fault": "DNS resolution failures"
+    },
+    {
+      "id": "TRAFFIC-MIX",
+      "name": "Top Applications by Data Volume",
+      "primary_condition": "Traffic composition change (Option A)",
+      "temporal": "Workload-dependent",
+      "ground_truth": "Expected versus observed traffic classification",
+      "h4_type": "excluded",
+      "host": "Station",
+      "window_s": 180,
+      "min_recovery_s": 60,
+      "script_status": "needs_script",
+      "order": null,
+      "launch": "MANUAL: generate a defined mix from a station (streaming, social media, web browsing) for the window. Note exactly what was generated.",
+      "verify": [
+        "Compare generated categories and volumes with the dashboard's per-category totals"
+      ],
+      "stop": "Stop the generated traffic",
+      "panel": "Top Applications by Data Volume (24h)",
+      "gt_label": "Bytes in target category",
+      "notes": "Decide Option A (composition change) or Option B (induced accounting failure). No script exists yet; the logger still records timing and outcome.",
+      "runner": {
+        "auto": false,
+        "extra": [],
+        "onset": null,
+        "cleared": null,
+        "gt_probe": "gw_rtt",
+        "gt_dir": "up",
+        "preflight": []
+      },
+      "fault": "Traffic classification and accounting"
+    },
+    {
+      "id": "WAN-LOSS",
+      "name": "Internet Packet Loss",
+      "primary_condition": "Packet delivery degradation",
+      "temporal": "Sustained",
+      "ground_truth": "Observed packet-loss rate",
+      "h4_type": "discrete",
+      "host": "GATEWAY (as root). Cannot run on AP2: the loss probe runs on the gateway",
+      "window_s": 180,
+      "min_recovery_s": 90,
+      "script_status": "needs_fix",
+      "order": null,
+      "launch": "sudo ./wan_packet_loss_test.sh 15 3",
+      "verify": [
+        "Gateway: tc qdisc show dev enx00e04c507970  (netem loss present)",
+        "Prometheus: node_qoe_packet_loss_ratio{job=\"gw-latency\"} * 100 > 1"
+      ],
+      "stop": "sudo ./wan_packet_loss_test.sh --clear",
+      "panel": "Internet Packet Loss (A: green below 1%, orange 1 to 5%, red above 5%)",
+      "gt_label": "Loss ratio (%)",
+      "notes": "No pidfile, so stop_fault.sh cannot stop it. The script traps HUP, so a dropped SSH session ends the fault early; launch it detached. Loss probe latency depends on the latency.py cron cadence. Reported loss moves in steps of 2.5 percent because the probe pools 40 pings.",
+      "runner": {
+        "auto": true,
+        "launch_cmd": "./wan_packet_loss_test.sh 15 {minutes} {wan_iface}",
+        "stop_cmd": "./wan_packet_loss_test.sh --clear {wan_iface}",
+        "extra": [
+          "netem"
+        ],
+        "onset": {
+          "probe": "netem",
+          "op": "eq",
+          "mode": "abs",
+          "value": 1,
+          "consec": 1
+        },
+        "cleared": {
+          "probe": "netem",
+          "op": "eq",
+          "mode": "abs",
+          "value": 0,
+          "consec": 1
+        },
+        "gt_probe": "gw_loss",
+        "gt_dir": "up",
+        "preflight": [
+          [
+            "no_netem",
+            "netem"
+          ]
+        ]
+      },
+      "fault": "WAN or gateway packet loss"
+    },
+    {
+      "id": "LOSS-JITTER",
+      "name": "Internet Packet Loss and Jitter",
+      "primary_condition": "Congestion-related degradation, or controlled loss and jitter",
+      "temporal": "Sustained",
+      "ground_truth": "Packet loss and delay variation",
+      "h4_type": "mixed",
+      "host": "GATEWAY (as root), WAN interface",
+      "window_s": 180,
+      "min_recovery_s": 90,
+      "script_status": "needs_review",
+      "order": null,
+      "launch": "./loss_jitter_test.sh 10 50 <minutes> enx00e04c507970",
+      "verify": [
+        "Gateway: tc qdisc show dev enx00e04c507970  (netem delay 50ms 50ms loss 10%)",
+        "Gateway: fping -C20 8.8.8.8 (loss and spread)"
+      ],
+      "stop": "./loss_jitter_test.sh --clear enx00e04c507970",
+      "panel": "Internet Packet Loss and Internet Jitter (both panels move; A jitter: green below 30 ms, orange 30 to 100 ms, red above 100 ms)",
+      "gt_label": "Loss (%) and jitter (ms) seen from the gateway",
+      "notes": "netem loss plus jitter on the gateway WAN. Shares the one netem qdisc with WAN-LOSS and LATENCY, so never run them together. Mean delay equals the jitter, so the spread is real (netem has no negative delay). Reported loss moves in steps of 2.5 percent because the probe pools 40 pings. Both Internet Packet Loss and Internet Jitter change, so the correct indicator is the combined entry. A participant who names only one of them is scored wrong: decide the coding rule before the sessions.",
+      "runner": {
+        "auto": true,
+        "launch_cmd": "./loss_jitter_test.sh 10 50 {minutes} {wan_iface}",
+        "stop_cmd": "./loss_jitter_test.sh --clear {wan_iface}",
+        "extra": [
+          "netem",
+          "gw_jitter"
+        ],
+        "onset": {
+          "probe": "netem",
+          "op": "eq",
+          "mode": "abs",
+          "value": 1,
+          "consec": 1
+        },
+        "cleared": {
+          "probe": "netem",
+          "op": "eq",
+          "mode": "abs",
+          "value": 0,
+          "consec": 1
+        },
+        "gt_probe": "gw_loss",
+        "gt_dir": "up",
+        "preflight": [
+          [
+            "no_netem",
+            "netem"
+          ]
+        ]
+      },
+      "fault": "Packet loss and jitter"
+    },
+    {
+      "id": "LATENCY",
+      "name": "Internet Delay (Round-Trip Time)",
+      "primary_condition": "Increased network delay",
+      "temporal": "Sustained",
+      "ground_truth": "RTT distribution",
+      "h4_type": "progressive",
+      "host": "GATEWAY (as root). Cannot run on AP2: the RTT probe runs on the gateway",
+      "window_s": 180,
+      "min_recovery_s": 90,
+      "script_status": "needs_fix",
+      "order": null,
+      "launch": "sudo ./qoe_delay_test.sh 200 3",
+      "verify": [
+        "Before: fping -C5 8.8.8.8 (baseline RTT)",
+        "Gateway: tc qdisc show dev enx00e04c507970",
+        "Prometheus: node_qoe_rtt_p90_ms"
+      ],
+      "stop": "sudo ./qoe_delay_test.sh --clear",
+      "panel": "Internet Delay (Round-Trip Time, P90) (A: Good below 100 ms, Elevated 100 to 200 ms, Degraded above 200 ms)",
+      "gt_label": "RTT P90 (ms)",
+      "notes": "Delay is added on top of baseline RTT, so check baseline first. No pidfile; HUP trap ends the fault if SSH drops. P90 comes from a cron job, so expect a lag before the panel changes.",
+      "runner": {
+        "auto": true,
+        "launch_cmd": "./qoe_delay_test.sh 200 {minutes} 50 {wan_iface}",
+        "stop_cmd": "./qoe_delay_test.sh --clear {wan_iface}",
+        "extra": [
+          "netem"
+        ],
+        "onset": {
+          "probe": "netem",
+          "op": "eq",
+          "mode": "abs",
+          "value": 1,
+          "consec": 1
+        },
+        "cleared": {
+          "probe": "netem",
+          "op": "eq",
+          "mode": "abs",
+          "value": 0,
+          "consec": 1
+        },
+        "gt_probe": "gw_rtt",
+        "gt_dir": "up",
+        "preflight": [
+          [
+            "no_netem",
+            "netem"
+          ]
+        ]
+      },
+      "fault": "Elevated latency"
+    },
+    {
+      "id": "CPU",
+      "name": "Access Point 2 CPU",
+      "primary_condition": "Device resource pressure",
+      "temporal": "Sustained",
+      "ground_truth": "CPU utilisation",
+      "h4_type": "progressive",
+      "host": "AP2",
+      "window_s": 180,
+      "min_recovery_s": 90,
+      "script_status": "ready",
+      "order": null,
+      "launch": "./cpufill_test.sh 95 5 root@192.168.1.101",
+      "verify": [
+        "AP2: top -bn1 | head -5",
+        "Prometheus: AP2 CPU utilisation (5-minute rate window on the panel)"
+      ],
+      "stop": "./stop_fault.sh cpufill root@192.168.1.101",
+      "panel": "Access Point 2 Resource Summary, CPU field (A: green below 80%, orange 80 to 90%, red above 90%); B: Access Point 2 CPU & Memory",
+      "gt_label": "CPU utilisation (%)",
+      "notes": "The panel uses a 1 minute rate(), so displayed CPU reaches the loaded level within about a minute and falls back within about a minute of cleanup. Window 180 s and recovery 90 s; confirm in the pilot. Check AP2 is single-core.",
+      "runner": {
+        "auto": true,
+        "launch_cmd": "./cpufill_test.sh 95 {minutes} root@192.168.1.101",
+        "stop_cmd": "./stop_fault.sh cpufill root@192.168.1.101",
+        "extra": [
+          "cpu_pid"
+        ],
+        "onset": {
+          "probe": "ap2_cpu",
+          "op": "gte",
+          "mode": "abs",
+          "value": 80,
+          "consec": 2
+        },
+        "cleared": {
+          "probe": "cpu_pid",
+          "op": "eq",
+          "mode": "abs",
+          "value": 0,
+          "consec": 1
+        },
+        "gt_probe": "ap2_cpu",
+        "gt_dir": "up",
+        "preflight": [
+          [
+            "pid_dead",
+            "cpu_pid"
+          ],
+          [
+            "ssh_ok",
+            "ap2"
+          ]
+        ]
+      },
+      "fault": "CPU resource exhaustion"
+    },
+    {
+      "id": "MEMORY",
+      "name": "Access Point 2 Memory",
+      "primary_condition": "Device resource pressure",
+      "temporal": "Sustained",
+      "ground_truth": "Available memory",
+      "h4_type": "progressive",
+      "host": "AP2",
+      "window_s": 180,
+      "min_recovery_s": 60,
+      "script_status": "needs_review",
+      "order": null,
+      "launch": "./memfill_test.sh 8 <minutes> 192.168.1.101",
+      "verify": [
+        "AP2: cat /proc/meminfo | head -3",
+        "AP2: cat /tmp/memfill_test.log  (look for 'target reached')"
+      ],
+      "stop": "./stop_fault.sh memfill root@192.168.1.101, then rm -f /mnt/memfill/fill_*; umount /mnt/memfill on AP2",
+      "panel": "Access Point 2 Resource Summary, Memory field (A: green below 80% used, orange 80 to 90%, red above 90%, i.e. available memory below 20% / 10%); B: Access Point 2 CPU & Memory",
+      "gt_label": "Available memory (%)",
+      "notes": "memfill_test.sh now writes /tmp/fault_memfill.pid on AP2, so the runner and stop_fault.sh can stop it. The fill ramps at about 5 MB per second and then holds; the runner starts the clock when AP2 memory use reaches 88 percent. Floor is 8 percent available. Replace memfill_test.sh with the pidfile version.",
+      "runner": {
+        "auto": true,
+        "launch_cmd": "./memfill_test.sh 8 {minutes} 192.168.1.101",
+        "stop_cmd": "./stop_fault.sh memfill root@192.168.1.101; ssh -o BatchMode=yes -o ConnectTimeout=5 root@192.168.1.101 \"rm -f /mnt/memfill/fill_*; umount /mnt/memfill 2>/dev/null; rm -f /tmp/fault_memfill.pid\"",
+        "extra": [
+          "memfill_pid"
+        ],
+        "onset": {
+          "probe": "ap2_mem_used",
+          "op": "gte",
+          "mode": "abs",
+          "value": 88,
+          "consec": 2
+        },
+        "cleared": {
+          "probe": "ap2_mem_used",
+          "op": "lte",
+          "mode": "delta",
+          "value": 5,
+          "consec": 2
+        },
+        "gt_probe": "ap2_mem_used",
+        "gt_dir": "up",
+        "preflight": [
+          [
+            "pid_dead",
+            "memfill_pid"
+          ],
+          [
+            "ssh_ok",
+            "ap2"
+          ]
+        ]
+      },
+      "fault": "Memory resource exhaustion"
+    },
+    {
+      "id": "WIFI-FLAP",
+      "name": "Access Point 2 Link Flaps",
+      "primary_condition": "Intermittent wireless connectivity",
+      "temporal": "Repeated transitions",
+      "ground_truth": "Interface state and connectivity interruptions",
+      "h4_type": "discrete",
+      "host": "AP2 (phy0-ap0)",
+      "window_s": 180,
+      "min_recovery_s": 90,
+      "script_status": "ready",
+      "order": "last",
+      "launch": "./flap_test.sh 12 2 5 root@192.168.1.101",
+      "verify": [
+        "Before and after: ssh root@192.168.1.101 'cat /sys/class/net/phy0-ap0/carrier_changes'",
+        "ssh root@192.168.1.101 'logread | grep flap_test'"
+      ],
+      "stop": "./stop_fault.sh flap root@192.168.1.101",
+      "panel": "Access Point 2 Resource Summary, Link flaps field (A: Stable 0, Flapping 1 to 5, Unstable above 5 in the last 1 minute); B: Access Point 2 Link Flaps (last 1 minute)",
+      "gt_label": "Carrier changes (count)",
+      "notes": "Default run is about 84 s. The flap count covers the last 1 minute, so it clears about a minute after the last flap; recovery is set to 90 s. Always pass the AP2 target; the default is AP1.",
+      "runner": {
+        "auto": true,
+        "launch_cmd": "./flap_test.sh 5 3 20 root@192.168.1.101",
+        "stop_cmd": "./stop_fault.sh flap root@192.168.1.101",
+        "extra": [
+          "flap_pid",
+          "ap2_carrier"
+        ],
+        "onset": {
+          "probe": "ap2_carrier",
+          "op": "gte",
+          "mode": "delta",
+          "value": 1,
+          "consec": 1
+        },
+        "cleared": {
+          "probe": "flap_pid",
+          "op": "eq",
+          "mode": "abs",
+          "value": 0,
+          "consec": 1
+        },
+        "gt_probe": "ap2_carrier",
+        "gt_dir": "up",
+        "preflight": [
+          [
+            "pid_dead",
+            "flap_pid"
+          ],
+          [
+            "ssh_ok",
+            "ap2"
+          ]
+        ]
+      },
+      "fault": "Wi-Fi flapping"
+    },
+    {
+      "id": "AVAIL",
+      "name": "Access Point 2 Status",
+      "primary_condition": "Device or link outage",
+      "temporal": "Discrete transition, potentially sustained",
+      "ground_truth": "Reachability or link state",
+      "h4_type": "discrete",
+      "host": "AP1 (blocks the mesh peer link to AP2)",
+      "window_s": 180,
+      "min_recovery_s": 120,
+      "script_status": "needs_review",
+      "order": null,
+      "launch": "./ap_outage_test.sh 30 root@192.168.1.100",
+      "verify": [
+        "Gateway: ping 192.168.1.101 (100% loss while blocked)",
+        "AP1: iw dev phy1-mesh0 station dump (AP2 missing while blocked)",
+        "AP1 afterwards: cat /tmp/ap_outage_test.log"
+      ],
+      "stop": "./stop_fault.sh apoutage root@192.168.1.100",
+      "panel": "Access Point 2 Status (also Mesh Link Packet Loss and Access Point 2 Resource Summary go to offline / waiting)",
+      "gt_label": "AP2 packet loss seen from the gateway (%)",
+      "notes": "Blocks the AP1 to AP2 mesh peer link for 30 s from AP1 (wired), then re-opens it. AP2 itself is never touched. AP2 is unreachable from the gateway meanwhile, so probes through AP2 return nothing during the outage. Keep participant and researcher devices off AP2. Test on the bench first.",
+      "runner": {
+        "auto": true,
+        "launch_cmd": "./ap_outage_test.sh 30 root@192.168.1.100",
+        "stop_cmd": "./stop_fault.sh apoutage root@192.168.1.100",
+        "extra": [
+          "ap2_reach",
+          "apoutage_pid"
+        ],
+        "onset": {
+          "probe": "ap2_reach",
+          "op": "gte",
+          "mode": "abs",
+          "value": 100,
+          "consec": 1
+        },
+        "cleared": {
+          "probe": "ap2_reach",
+          "op": "eq",
+          "mode": "abs",
+          "value": 0,
+          "consec": 2
+        },
+        "gt_probe": "ap2_reach",
+        "gt_dir": "up",
+        "preflight": [
+          [
+            "pid_dead",
+            "apoutage_pid"
+          ],
+          [
+            "ssh_ok",
+            "ap1"
+          ]
+        ]
+      },
+      "fault": "Device and link availability"
+    },
+    {
+      "id": "CATCH",
+      "name": "CATCH TRIAL (no fault induced)",
+      "primary_condition": "None",
+      "temporal": "None",
+      "ground_truth": "No change should be reported",
+      "h4_type": "catch",
+      "host": "None",
+      "window_s": 180,
+      "min_recovery_s": 60,
+      "script_status": "ready",
+      "order": null,
+      "launch": "Nothing to launch. Confirm the testbed is in its normal state and start the window.",
+      "verify": [
+        "Confirm no fault process or netem rule is active"
+      ],
+      "stop": "Nothing to stop",
+      "panel": "None",
+      "gt_label": "n/a",
+      "notes": "Any report during a catch trial is a false alarm.",
+      "runner": {
+        "auto": true,
+        "launch_cmd": "",
+        "stop_cmd": "",
+        "extra": [],
+        "onset": null,
+        "cleared": null,
+        "gt_probe": "ap2_cpu",
+        "gt_dir": "up",
+        "preflight": [
+          [
+            "no_netem",
+            "netem"
+          ],
+          [
+            "pid_dead",
+            "cpu_pid"
+          ],
+          [
+            "pid_dead",
+            "flap_pid"
+          ],
+          [
+            "pid_dead",
+            "dns_pid"
+          ]
+        ]
+      },
+      "fault": "CATCH TRIAL (no fault induced)"
+    }
+  ],
+  "runner": {
+    "fault_dir": "~/prometheus_cwn_dashboard/faults_commands",
+    "wan_iface": "enx00e04c507970",
+    "ping_target": "8.8.8.8",
+    "prometheus_url": "http://localhost:9090",
+    "sample_s": 3,
+    "onset_timeout_s": 90,
+    "clear_timeout_s": 90,
+    "hosts": {
+      "gateway": null,
+      "ap1": "root@192.168.1.100",
+      "ap2": "root@192.168.1.101",
+      "station": "takondwa@192.168.1.11"
+    },
+    "safety_clear": [
+      "./stop_fault.sh all root@192.168.1.101",
+      "./stop_fault.sh dns takondwa@192.168.1.11",
+      "./wan_packet_loss_test.sh --clear {wan_iface}",
+      "./qoe_delay_test.sh --clear {wan_iface}",
+      "./stop_fault.sh apoutage root@192.168.1.100",
+      "./stop_fault.sh bwsat takondwa@192.168.1.11",
+      "./stop_fault.sh memfill root@192.168.1.101; ssh -o BatchMode=yes -o ConnectTimeout=5 root@192.168.1.101 \"rm -f /mnt/memfill/fill_*; umount /mnt/memfill 2>/dev/null; rm -f /tmp/fault_memfill.pid\"",
+      "./loss_jitter_test.sh --clear {wan_iface}"
+    ],
+    "common_probes": [
+      "ap2_cpu",
+      "ap2_mem_used",
+      "ap1_cpu",
+      "ap1_mem_used",
+      "ap1_reach",
+      "gw_rtt",
+      "gw_loss",
+      "gw_jitter",
+      "ap2_reach",
+      "dns_fail_pct",
+      "bw_up_mbps",
+      "bw_down_mbps",
+      "qoe_rtt_p90",
+      "qoe_loss_pct",
+      "d_clients",
+      "d_rtt_p90",
+      "d_jitter",
+      "d_inet_loss",
+      "d_dns_fail",
+      "d_up_mbps",
+      "d_down_mbps",
+      "d_data_24h_gb",
+      "d_chan_util",
+      "d_mesh_snr",
+      "d_mesh_rssi",
+      "d_mesh_loss",
+      "d_ap1_up",
+      "d_ap1_cpu",
+      "d_ap1_mem",
+      "d_ap1_wifi_loss",
+      "d_ap1_flaps",
+      "d_ap1_min_snr",
+      "d_ap2_up",
+      "d_ap2_cpu",
+      "d_ap2_mem",
+      "d_ap2_wifi_loss",
+      "d_ap2_flaps",
+      "d_ap2_min_snr"
+    ],
+    "probe_defs": {
+      "ap2_cpu": {
+        "kind": "cpu_busy",
+        "host": "ap2",
+        "unit": "%"
+      },
+      "ap2_mem_used": {
+        "kind": "mem_used",
+        "host": "ap2",
+        "unit": "%"
+      },
+      "ap1_cpu": {
+        "kind": "cpu_busy",
+        "host": "ap1",
+        "unit": "%"
+      },
+      "ap1_mem_used": {
+        "kind": "mem_used",
+        "host": "ap1",
+        "unit": "%"
+      },
+      "ap1_reach": {
+        "kind": "ping",
+        "host": "gateway",
+        "target": "192.168.1.100",
+        "count": 3,
+        "field": "loss",
+        "unit": "% loss"
+      },
+      "gw_rtt": {
+        "kind": "ping",
+        "host": "gateway",
+        "target": "8.8.8.8",
+        "count": 5,
+        "field": "rtt",
+        "unit": "ms"
+      },
+      "gw_loss": {
+        "kind": "ping",
+        "host": "gateway",
+        "target": "8.8.8.8",
+        "count": 10,
+        "field": "loss",
+        "unit": "%"
+      },
+      "netem": {
+        "kind": "netem",
+        "iface": "{wan_iface}",
+        "unit": "1/0"
+      },
+      "dns_pid": {
+        "kind": "pid_alive",
+        "host": "station",
+        "path": "/tmp/fault_dns.pid",
+        "unit": "1/0"
+      },
+      "flap_pid": {
+        "kind": "pid_alive",
+        "host": "ap2",
+        "path": "/tmp/fault_flap.pid",
+        "unit": "1/0"
+      },
+      "cpu_pid": {
+        "kind": "pid_alive",
+        "host": "ap2",
+        "path": "/tmp/fault_cpufill.pid",
+        "unit": "1/0"
+      },
+      "ap2_carrier": {
+        "kind": "carrier",
+        "host": "ap2",
+        "iface": "phy0-ap0",
+        "unit": "count"
+      },
+      "dns_ms": {
+        "kind": "dns_ms",
+        "host": "gateway",
+        "unit": "ms"
+      },
+      "bwsat_pid": {
+        "kind": "pid_alive",
+        "host": "station",
+        "path": "/tmp/fault_bwsat.pid",
+        "unit": "1/0"
+      },
+      "bw_up_mbps": {
+        "kind": "prom",
+        "query": "rate(node_network_transmit_bytes_total{job=\"openwrt-ap1-node\",device=\"eth0\"}[1m]) * 8 / 1000000",
+        "scale": 1,
+        "unit": "Mbps"
+      },
+      "bw_down_mbps": {
+        "kind": "prom",
+        "query": "rate(node_network_receive_bytes_total{job=\"openwrt-ap1-node\",device=\"eth0\"}[1m]) * 8 / 1000000",
+        "scale": 1,
+        "unit": "Mbps"
+      },
+      "memfill_pid": {
+        "kind": "pid_alive",
+        "host": "ap2",
+        "path": "/tmp/fault_memfill.pid",
+        "unit": "1/0"
+      },
+      "gw_jitter": {
+        "kind": "ping",
+        "host": "gateway",
+        "target": "8.8.8.8",
+        "count": 10,
+        "field": "jitter",
+        "unit": "ms"
+      },
+      "qoe_rtt_p90": {
+        "kind": "prom",
+        "query": "node_qoe_rtt_p90_ms{job=\"gw-latency\"}",
+        "scale": 1,
+        "unit": "ms"
+      },
+      "qoe_loss_pct": {
+        "kind": "prom",
+        "query": "node_qoe_packet_loss_ratio{job=\"gw-latency\"}",
+        "scale": 100,
+        "unit": "%"
+      },
+      "dns_fail_pct": {
+        "kind": "prom",
+        "query": "node_dns_failure_ratio{job=\"gw-latency\"}",
+        "scale": 100,
+        "unit": "%"
+      },
+      "apoutage_pid": {
+        "kind": "pid_alive",
+        "host": "ap1",
+        "path": "/tmp/fault_apoutage.pid",
+        "unit": "1/0"
+      },
+      "ap2_reach": {
+        "kind": "ping",
+        "host": "gateway",
+        "target": "192.168.1.101",
+        "count": 3,
+        "field": "loss",
+        "unit": "% loss"
+      },
+      "d_clients": {
+        "kind": "prom",
+        "query": "count(count by (mac) (avg_over_time(node_wifi_station_signal_dbm{job=~\"openwrt-ap1-wifi|openwrt-ap2-wifi\", device=\"phy0-ap0\"}[1m]))) or vector(0)",
+        "agg": "max",
+        "scale": 1,
+        "unit": "clients"
+      },
+      "d_rtt_p90": {
+        "kind": "prom",
+        "query": "avg_over_time(node_qoe_rtt_p90_ms{job=\"gw-latency\"}[1m])",
+        "agg": "max",
+        "scale": 1,
+        "unit": "ms"
+      },
+      "d_jitter": {
+        "kind": "prom",
+        "query": "avg_over_time(node_qoe_jitter_ms{job=\"gw-latency\"}[1m])",
+        "agg": "max",
+        "scale": 1,
+        "unit": "ms"
+      },
+      "d_inet_loss": {
+        "kind": "prom",
+        "query": "avg_over_time(node_qoe_packet_loss_ratio{job=\"gw-latency\"}[1m]) * 100",
+        "agg": "max",
+        "scale": 1,
+        "unit": "%"
+      },
+      "d_dns_fail": {
+        "kind": "prom",
+        "query": "avg_over_time(node_dns_failure_ratio{job=\"gw-latency\"}[1m]) * 100",
+        "agg": "max",
+        "scale": 1,
+        "unit": "%"
+      },
+      "d_up_mbps": {
+        "kind": "prom",
+        "query": "rate(node_network_transmit_bytes_total{job=\"openwrt-ap1-node\", device=\"eth0\"}[1m]) * 8 / 1000000",
+        "agg": "max",
+        "scale": 1,
+        "unit": "Mbps"
+      },
+      "d_down_mbps": {
+        "kind": "prom",
+        "query": "rate(node_network_receive_bytes_total{job=\"openwrt-ap1-node\", device=\"eth0\"}[1m]) * 8 / 1000000",
+        "agg": "max",
+        "scale": 1,
+        "unit": "Mbps"
+      },
+      "d_data_24h_gb": {
+        "kind": "prom",
+        "query": "sum(increase(node_app_traffic_bytes_nfstream{job=\"gw-latency\"}[24h]))",
+        "agg": "max",
+        "scale": 1e-09,
+        "unit": "GB"
+      },
+      "d_chan_util": {
+        "kind": "prom",
+        "query": "avg_over_time(node_wifi_link_utilization_percent{job=\"openwrt-ap1-link-util\", device=\"phy0-ap0\"}[1m])",
+        "agg": "max",
+        "scale": 1,
+        "unit": "%"
+      },
+      "d_mesh_snr": {
+        "kind": "prom",
+        "query": "avg_over_time(node_wifi_station_snr_db{job=\"openwrt-ap1-wifi\", device=\"phy1-mesh0\"}[1m])",
+        "agg": "max",
+        "scale": 1,
+        "unit": "dB"
+      },
+      "d_mesh_rssi": {
+        "kind": "prom",
+        "query": "avg_over_time(node_wifi_station_signal_dbm{job=\"openwrt-ap1-wifi\", device=\"phy1-mesh0\"}[1m])",
+        "agg": "max",
+        "scale": 1,
+        "unit": "dBm"
+      },
+      "d_mesh_loss": {
+        "kind": "prom",
+        "query": "100 * rate(node_wifi_qdisc_dropped_packets_total{job=\"openwrt-ap1-mesh-qdisc\", device=\"phy1-mesh0\"}[1m]) / clamp_min(rate(node_wifi_qdisc_sent_packets_total{job=\"openwrt-ap1-mesh-qdisc\", device=\"phy1-mesh0\"}[1m]) + rate(node_wifi_qdisc_dropped_packets_total{job=\"openwrt-ap1-mesh-qdisc\", device=\"phy1-mesh0\"}[1m]), 1)",
+        "agg": "max",
+        "scale": 1,
+        "unit": "%"
+      },
+      "d_ap1_up": {
+        "kind": "prom",
+        "query": "up{job=\"openwrt-ap1-node\"}",
+        "agg": "max",
+        "scale": 1,
+        "unit": "1/0"
+      },
+      "d_ap1_cpu": {
+        "kind": "prom",
+        "query": "(1 - avg(rate(node_cpu_seconds_total{job=\"openwrt-ap1-node\", mode=\"idle\"}[1m]))) * 100",
+        "agg": "max",
+        "scale": 1,
+        "unit": "%"
+      },
+      "d_ap1_mem": {
+        "kind": "prom",
+        "query": "(1 - avg_over_time(node_memory_MemAvailable_bytes{job=\"openwrt-ap1-node\"}[1m]) / avg_over_time(node_memory_MemTotal_bytes{job=\"openwrt-ap1-node\"}[1m])) * 100",
+        "agg": "max",
+        "scale": 1,
+        "unit": "%"
+      },
+      "d_ap1_wifi_loss": {
+        "kind": "prom",
+        "query": "100 * rate(node_wifi_qdisc_dropped_packets_total{job=\"openwrt-ap1-qdisc\", device=\"phy0-ap0\"}[1m]) / clamp_min(rate(node_wifi_qdisc_sent_packets_total{job=\"openwrt-ap1-qdisc\", device=\"phy0-ap0\"}[1m]) + rate(node_wifi_qdisc_dropped_packets_total{job=\"openwrt-ap1-qdisc\", device=\"phy0-ap0\"}[1m]), 1)",
+        "agg": "max",
+        "scale": 1,
+        "unit": "%"
+      },
+      "d_ap1_flaps": {
+        "kind": "prom",
+        "query": "floor(increase(node_network_carrier_changes_total{job=\"openwrt-ap1-node\", device=\"phy0-ap0\"}[1m]))",
+        "agg": "max",
+        "scale": 1,
+        "unit": "count"
+      },
+      "d_ap1_min_snr": {
+        "kind": "prom",
+        "query": "avg_over_time(node_wifi_station_snr_db{job=\"openwrt-ap1-wifi\", device=\"phy0-ap0\"}[1m])",
+        "agg": "min",
+        "scale": 1,
+        "unit": "dB"
+      },
+      "d_ap2_up": {
+        "kind": "prom",
+        "query": "up{job=\"openwrt-ap2-node\"}",
+        "agg": "max",
+        "scale": 1,
+        "unit": "1/0"
+      },
+      "d_ap2_cpu": {
+        "kind": "prom",
+        "query": "(1 - avg(rate(node_cpu_seconds_total{job=\"openwrt-ap2-node\", mode=\"idle\"}[1m]))) * 100",
+        "agg": "max",
+        "scale": 1,
+        "unit": "%"
+      },
+      "d_ap2_mem": {
+        "kind": "prom",
+        "query": "(1 - avg_over_time(node_memory_MemAvailable_bytes{job=\"openwrt-ap2-node\"}[1m]) / avg_over_time(node_memory_MemTotal_bytes{job=\"openwrt-ap2-node\"}[1m])) * 100",
+        "agg": "max",
+        "scale": 1,
+        "unit": "%"
+      },
+      "d_ap2_wifi_loss": {
+        "kind": "prom",
+        "query": "100 * rate(node_wifi_qdisc_dropped_packets_total{job=\"openwrt-ap2-qdisc\", device=\"phy0-ap0\"}[1m]) / clamp_min(rate(node_wifi_qdisc_sent_packets_total{job=\"openwrt-ap2-qdisc\", device=\"phy0-ap0\"}[1m]) + rate(node_wifi_qdisc_dropped_packets_total{job=\"openwrt-ap2-qdisc\", device=\"phy0-ap0\"}[1m]), 1)",
+        "agg": "max",
+        "scale": 1,
+        "unit": "%"
+      },
+      "d_ap2_flaps": {
+        "kind": "prom",
+        "query": "floor(increase(node_network_carrier_changes_total{job=\"openwrt-ap2-node\", device=\"phy0-ap0\"}[1m]))",
+        "agg": "max",
+        "scale": 1,
+        "unit": "count"
+      },
+      "d_ap2_min_snr": {
+        "kind": "prom",
+        "query": "avg_over_time(node_wifi_station_snr_db{job=\"openwrt-ap2-wifi\", device=\"phy0-ap0\"}[1m])",
+        "agg": "min",
+        "scale": 1,
+        "unit": "dB"
+      }
+    }
+  }
+}

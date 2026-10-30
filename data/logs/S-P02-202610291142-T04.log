@@ -1,0 +1,11 @@
+Checking connectivity to root@192.168.1.100 (the AP that cuts the path)...
+Connectivity OK.
+Mesh interface on 192.168.1.100: phy1-mesh0 (bridge port of br-lan)
+
+Launching on 192.168.1.100: cutting phy1-mesh0 out of br-lan for 30s, then restoring automatically...
+launched
+Outage in progress: 192.168.1.101 has stopped answering.
+
+Detached on 192.168.1.100. It restores itself after 30s.
+To stop early:  ./stop_fault.sh apoutage root@192.168.1.100
+Check afterwards: ssh root@192.168.1.100 'cat /tmp/ap_outage_test.log'

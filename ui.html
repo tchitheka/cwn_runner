@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phase Three Trial Runner</title>
+<style>
+  :root{--bg:#f4f5f7;--panel:#fff;--border:#d7dbe0;--text:#1c1e21;--muted:#666b72;--accent:#1f4e79;--accent2:#2e75b6;--green:#2e7d32;--orange:#c9971c;--red:#a33d2e;}
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"Segoe UI",Arial,sans-serif;background:var(--bg);color:var(--text);}
+  header{background:var(--accent);color:#fff;padding:14px 22px;}
+  header h1{margin:0;font-size:19px;} header p{margin:4px 0 0;font-size:12.5px;color:#cfe0f0;}
+  .wrap{max-width:1240px;margin:0 auto;padding:18px 22px 60px;}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+  @media (max-width:950px){.grid{grid-template-columns:1fr;}}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:16px 18px;margin-bottom:18px;}
+  .card h2{margin:0 0 10px;font-size:14px;color:var(--accent);text-transform:uppercase;letter-spacing:.04em;}
+  details.card summary{cursor:pointer;font-weight:600;color:var(--accent);font-size:14px;text-transform:uppercase;letter-spacing:.04em;}
+  label{display:block;font-size:12.5px;color:var(--muted);margin:10px 0 3px;}
+  input[type=text],input[type=number],select,textarea{width:100%;padding:7px 8px;border:1px solid var(--border);border-radius:5px;font-size:14px;font-family:inherit;background:#fff;}
+  input[type=checkbox],input[type=radio]{margin-right:6px;}
+  textarea{min-height:56px;resize:vertical;}
+  .row{display:flex;gap:10px;flex-wrap:wrap;} .row>div{flex:1;min-width:150px;}
+  button{cursor:pointer;border:none;border-radius:6px;padding:9px 16px;font-size:13.5px;font-weight:600;}
+  .btn-primary{background:var(--accent2);color:#fff;} .btn-primary:hover:not(:disabled){background:var(--accent);}
+  .btn-stop{background:var(--red);color:#fff;} .btn-go{background:var(--green);color:#fff;}
+  .btn-ghost{background:#eceff2;color:var(--text);} .btn-ghost:hover:not(:disabled){background:#e0e3e7;}
+  .btn-hand{background:var(--orange);color:#fff;font-size:17px;padding:16px 20px;width:100%;margin-top:10px;}
+  button:disabled{opacity:.4;cursor:not-allowed;}
+  .timer{font-size:56px;font-weight:700;text-align:center;padding:10px 0 2px;font-variant-numeric:tabular-nums;}
+  .timer.warn{color:var(--orange);} .timer.over{color:var(--red);}
+  .capline{text-align:center;font-size:12.5px;color:var(--muted);margin-bottom:8px;min-height:18px;}
+  .btnrow{display:flex;gap:10px;justify-content:center;margin-top:8px;flex-wrap:wrap;}
+  .strip{display:flex;gap:4px;flex-wrap:wrap;margin:6px 0 10px;}
+  .st{font-size:11px;padding:3px 8px;border-radius:10px;background:#e9edf1;color:var(--muted);font-weight:600;}
+  .st.on{background:var(--accent2);color:#fff;} .st.err{background:var(--red);color:#fff;}
+  table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:6px;}
+  th,td{border:1px solid var(--border);padding:5px 7px;text-align:left;vertical-align:top;}
+  th{background:#eef2f6;color:var(--accent);} tr:nth-child(even){background:#fafbfc;}
+  .pill{display:inline-block;padding:1px 8px;border-radius:10px;font-size:11px;font-weight:600;color:#fff;}
+  .pill.ok{background:var(--green);} .pill.no{background:var(--red);} .pill.warn{background:var(--orange);}
+  .small{font-size:11.5px;color:var(--muted);} .count{font-size:12.5px;color:var(--muted);}
+  .banner{padding:8px 22px;font-size:13px;font-weight:600;}
+  .banner.practice{background:#fff3cd;color:#7a5c00;} .banner.bad{background:#f8d7da;color:#842029;}
+  pre{background:#f1f3f5;border:1px solid var(--border);border-radius:5px;padding:7px 9px;font-size:12px;white-space:pre-wrap;word-break:break-word;margin:3px 0 8px;}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
+  .chip{font-size:12px;padding:3px 9px;border-radius:12px;background:#e9edf1;}
+  .chip.done{background:#cfe8d1;} .chip.next{background:var(--accent2);color:#fff;font-weight:700;}
+  .blur{filter:blur(6px);user-select:none;}
+  .detected{color:var(--green);font-weight:700;text-align:center;min-height:22px;margin-top:6px;}
+  .msg{font-size:12.5px;color:var(--red);min-height:18px;margin-top:6px;}
+  .modes{display:flex;gap:18px;margin:8px 0;font-size:13px;}
+  .modes label{margin:0;color:var(--text);}
+</style>
+</head>
+<body>
+<header>
+  <h1>Phase Three &mdash; Trial Runner</h1>
+  <p>Runs on the gateway. Controls the faults, takes independent probe readings and keeps all timing on one clock. Keep this screen out of the participant's view.</p>
+</header>
+<div id="banner"></div>
+
+<div class="wrap">
+  <div class="card">
+    <h2>Session setup</h2>
+    <div class="row">
+      <div><label>Participant ID</label><input type="text" id="pid" placeholder="e.g. P07"></div>
+      <div><label>Condition</label><select id="condition"><option value="A">Condition A (Prioritised)</option><option value="B">Condition B (Baseline)</option></select></div>
+      <div><label>Order seed (blank = from participant ID)</label><input type="text" id="seed" placeholder="optional"></div>
+      <div><label>Observer / researcher</label><input type="text" id="observer" placeholder="your initials"></div>
+    </div>
+    <label><input type="checkbox" id="blur"> Blur scenario details while a trial is active (use if the participant could see this screen)</label>
+    <div class="btnrow" style="justify-content:flex-start">
+      <button class="btn-primary" id="genOrder">Generate task order</button>
+      <button class="btn-ghost" id="newPart">New participant</button>
+    </div>
+    <div class="small" id="sessionInfo" style="margin-top:8px;"></div>
+    <div class="chips" id="orderChips"></div>
+    <div class="msg" id="setupMsg"></div>
+  </div>
+
+  <details class="card">
+    <summary>Pilot settings: scenarios, windows and recovery</summary>
+    <p class="small">Set these once from pilot data and keep them identical for both conditions and every participant. Windows and recovery are in seconds.</p>
+    <div class="row">
+      <div style="max-width:220px"><label>Catch trials per participant</label><input type="number" id="catchN" min="0" max="4"></div>
+      <div style="max-width:220px"><label>Baseline period (s)</label><input type="number" id="baselineS" min="5"></div>
+    </div>
+    <div class="row">
+      <div><label>Dashboard version, Condition A</label><input type="text" id="dvA" placeholder="e.g. v13.2 prioritised"></div>
+      <div><label>Dashboard version, Condition B</label><input type="text" id="dvB" placeholder="e.g. v13.2 baseline"></div>
+    </div>
+    <div class="row" style="align-items:flex-end">
+      <div><label><input type="checkbox" id="earlyEnd"> End the active window early once the participant has reported</label></div>
+      <div style="max-width:200px"><label>Extra seconds to allow further reports</label><input type="number" id="earlyGrace" min="0" max="120"></div>
+    </div>
+    <div class="row" style="align-items:flex-end">
+      <div><label><input type="checkbox" id="earlyRec"> Do not wait for the full recovery time once the testbed is verified normal</label></div>
+      <div style="max-width:200px"><label>Seconds it must stay normal</label><input type="number" id="settleS" min="5" max="300"></div>
+    </div>
+    <p class="small">Both are off by default. Use the same setting for every participant and condition, and report it in the methods: ending early removes later reports and shortens the recovery reading. Each trial row records the actual window and recovery lengths.</p>
+    <table><thead><tr><th>Include</th><th>Scenario</th><th>Runs automatically</th><th>Window (s)</th><th>Min recovery (s)</th></tr></thead><tbody id="settingsBody"></tbody></table>
+  </details>
+
+  <div class="grid">
+    <div class="card">
+      <h2>Current trial</h2>
+      <label>Scenario (defaults to the next one in the order)</label>
+      <select id="taskSelect"></select>
+      <div class="modes">
+        <label><input type="radio" name="mode" value="auto" id="modeAuto" checked> Automatic (runner launches, verifies and clears)</label>
+        <label><input type="radio" name="mode" value="manual" id="modeManual"> Manual (you run the commands)</label>
+      </div>
+      <div class="strip" id="strip"></div>
+      <div id="details">
+        <div id="meta" class="small"></div>
+        <div class="small" style="margin-top:8px;"><b>Launch</b></div><pre id="cmdLaunch"></pre>
+        <div class="small"><b>Verify applied</b></div><pre id="cmdVerify"></pre>
+        <div class="small"><b>Stop / clear</b></div><pre id="cmdStop"></pre>
+        <div class="small" id="scNotes"></div>
+      </div>
+      <div class="timer" id="timer">00:00</div>
+      <div class="capline" id="capLine"></div>
+      <div class="detected" id="detectedLine"></div>
+      <div class="btnrow">
+        <button class="btn-primary" id="bPrepare">Start trial</button>
+        <button class="btn-primary" id="bCommand">Fault command issued</button>
+        <button class="btn-go" id="bOnset">Fault verified applied: start clock</button>
+        <button class="btn-go" id="bCleared">Fault cleared and verified</button>
+        <button class="btn-go" id="bRecovered">Testbed recovered</button>
+        <button class="btn-ghost" id="bEndWindow">End window now</button>
+        <button class="btn-ghost" id="bSkipRec">Skip the recovery wait</button>
+      </div>
+      <label id="recOverrideLbl"><input type="checkbox" id="recOverride"> Override the minimum recovery time (testbed and dashboard panels verified normal)</label>
+      <button class="btn-hand" id="bHand">PARTICIPANT RAISED HAND (record report)</button>
+      <div class="row" style="margin-top:10px;align-items:flex-end">
+        <div><label>Abort / problem reason</label>
+          <select id="abortReason"><option>Participant withdrew</option><option>Injection failed</option><option>Cleanup failed</option><option>Equipment or network problem</option><option>Interruption</option><option>Other</option></select></div>
+        <div style="flex:0 0 auto"><button class="btn-stop" id="bAbort">Abort trial</button></div>
+        <div style="flex:0 0 auto"><button class="btn-ghost" id="bProblem">Report problem</button></div>
+      </div>
+      <label id="manualConfirmLbl"><input type="checkbox" id="manualConfirm"> I checked the testbed by hand and it is clean</label>
+      <div class="msg" id="trialMsg"></div>
+      <h2 style="margin-top:14px">Live probes</h2>
+      <table><thead><tr><th>Probe</th><th>Baseline</th><th>Now</th></tr></thead><tbody id="probeBody"></tbody></table>
+      <pre id="logTail" class="small"></pre>
+    </div>
+
+    <div class="card">
+      <h2>Outcome</h2>
+      <label>What did the participant say they found? (select the indicator they named)</label>
+      <select id="reported"></select>
+      <label>Researcher judgement: was the participant's description of what it means also correct?</label>
+      <select id="descCorrect">
+        <option value="">-- not yet judged --</option>
+        <option value="yes">Yes, correctly described</option>
+        <option value="no">No / vague / incorrect</option>
+      </select>
+      <label>What the participant said it was (their own words)</label>
+      <textarea id="pdesc"></textarea>
+      <label>Observation notes (hesitation, confusion, wrong panel checked first, etc.)</label>
+      <textarea id="notes"></textarea>
+      <label>Ground truth recorded by the runner (independent probes)</label>
+      <table><thead><tr><th>Probe</th><th>Baseline</th><th>End of window</th><th>Peak</th><th>After recovery</th></tr></thead><tbody id="sumBody"></tbody></table>
+      <div class="btnrow"><button class="btn-primary" id="bSave">Save trial</button></div>
+      <p class="small">First press during the active window is the detection time. Extra presses are logged as additional reports. Presses in baseline, recovery or a catch trial are logged as false alarms. Presses between the command and verified onset are logged as pre-onset reports.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Logged trials <span class="count" id="rowCount"></span></h2>
+    <div style="overflow-x:auto;"><table>
+      <thead><tr><th>#</th><th>Participant</th><th>Cond.</th><th>Scenario</th><th>Mode</th><th>Detected</th><th>Reported</th><th>Final correct</th><th>TTD (s)</th><th>False alarms</th><th>Valid</th><th>Notes</th></tr></thead>
+      <tbody id="logBody"></tbody></table></div>
+    <div class="row" style="margin-top:10px;gap:8px;align-items:center">
+      <button class="btn-primary" id="dlXlsx">Download all data (Excel)</button>
+      <button class="btn-ghost" id="dlTrials">Trials CSV</button>
+      <button class="btn-ghost" id="dlTrialsSemi">Trials CSV (semicolon, for Excel in some regions)</button>
+      <button class="btn-ghost" id="dlEvents">Events CSV</button>
+      <button class="btn-ghost" id="dlSamples">Probe samples CSV</button>
+      <button class="btn-ghost" id="dlBackup">Backup (JSON)</button>
+      <button class="btn-ghost" id="bSafety">Clear all faults now</button>
+      <button class="btn-ghost" id="bClear">Clear all data</button>
+    </div>
+    <div class="small" id="safetyInfo" style="margin-top:6px"></div>
+    <p class="small">Everything is stored on the gateway after every action. Download the CSVs and the backup at the end of every session and keep a copy somewhere other than the gateway.</p>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const P = new URLSearchParams(location.search);
+let TOKEN = P.get('t') || ''; try{ if(TOKEN) sessionStorage.setItem('tok', TOKEN); else TOKEN = sessionStorage.getItem('tok') || ''; }catch(e){}
+let V = null, recvAt = 0, lost = 0, busyMsg = '';
+const STATES = ['BASELINE','STARTING','ACTIVE','CLEANUP','RECOVERY','FINALISING'];
+
+async function api(name, body){
+  try{
+    const r = await fetch('/api/' + name, {method:'POST', headers:{'X-Token':TOKEN,'Content-Type':'application/json'}, body:JSON.stringify(body || {})});
+    const j = await r.json(); if(!r.ok) throw new Error(j.error || r.status);
+    $('trialMsg').textContent = ''; $('setupMsg').textContent = ''; await poll(); return true;
+  }catch(e){ const m = String(e.message || e); $('trialMsg').textContent = m; $('setupMsg').textContent = m; return false; }
+}
+async function poll(){
+  try{
+    const r = await fetch('/api/state', {headers:{'X-Token':TOKEN}}); if(r.status === 401){ lost = -1; render(); return; }
+    V = await r.json(); recvAt = performance.now(); lost = 0;
+    if(V.version !== 'runner-1.1') $('setupMsg').textContent = 'This page is newer than the runner (runner version: ' + (V.version || 'old') + '). Replace runner.py with the one from the same zip and restart the runner, otherwise new settings are not saved.';
+  }catch(e){ lost++; }
+  render();
+}
+const sc = id => V.config.scenarios.find(s => s.id === id);
+const fmt = s => { s = Math.max(0, s); return String(Math.floor(s/60)).padStart(2,'0') + ':' + String(Math.floor(s%60)).padStart(2,'0'); };
+const num = (x, d) => { if(x === null || x === undefined || x === '') return '--'; const n = Number(x), a = Math.abs(n); return n === 0 ? '0' : n.toFixed(d !== undefined ? d : (a < 1 ? 3 : (a < 10 ? 2 : 1))); };
+function el(tag, txt, cls){ const e = document.createElement(tag); if(txt !== undefined) e.textContent = txt; if(cls) e.className = cls; return e; }
+
+let built = false;
+function build(){
+  if(built || !V) return; built = true;
+  V.config.scenarios.forEach(s => { const o = el('option', s.name + '  [' + s.h4_type + ']'); o.value = s.id; $('taskSelect').appendChild(o); });
+  const b = el('option', '-- select --'); b.value = ''; $('reported').appendChild(b);
+  V.config.scenarios.filter(s => s.id !== 'CATCH').forEach(s => { const o = el('option', s.name); o.value = s.id; $('reported').appendChild(o); });
+  [['NONE','NONE / NOT DETECTED'],['OTHER','OTHER / WRONG PANEL']].forEach(([v,t]) => { const o = el('option', t); o.value = v; $('reported').appendChild(o); });
+  const tb = $('settingsBody');
+  V.config.scenarios.forEach(s => {
+    const tr = el('tr');
+    const c1 = el('td'); const cb = el('input'); cb.type = 'checkbox'; cb.id = 'inc_' + s.id; cb.disabled = s.id === 'CATCH';
+    cb.addEventListener('change', () => api('settings', {include:{[s.id]: cb.checked}})); c1.appendChild(cb);
+    const c3 = el('td'); c3.appendChild(el('span', s.runner.auto ? 'yes' : 'manual only', 'pill ' + (s.runner.auto ? 'ok' : 'warn')));
+    const c4 = el('td'); const w = el('input'); w.type = 'number'; w.min = 10; w.id = 'win_' + s.id; w.addEventListener('change', () => api('settings', {window:{[s.id]: +w.value}})); c4.appendChild(w);
+    const c5 = el('td'); const m = el('input'); m.type = 'number'; m.min = 0; m.id = 'rec_' + s.id; m.addEventListener('change', () => api('settings', {recovery:{[s.id]: +m.value}})); c5.appendChild(m);
+    [c1, el('td', s.name), c3, c4, c5].forEach(c => tr.appendChild(c)); tb.appendChild(tr);
+  });
+}
+const dirty = {};
+function setIfIdle(id, val){ if(val === undefined || val === null) return; const e = $(id); if(document.activeElement !== e && e.value !== String(val)) e.value = val; }
+function setChecked(id, val){ const e = $(id); if(document.activeElement !== e) e.checked = val; }
+
+function render(){
+  const bn = $('banner'); bn.innerHTML = '';
+  if(lost === -1){ bn.appendChild(el('div', 'Not authorised. Open the page with the ?t=TOKEN link printed by the runner.', 'banner bad')); return; }
+  if(!V) return;
+  build();
+  if(lost > 2) bn.appendChild(el('div', 'Lost contact with the runner. The trial keeps running on the gateway. Retrying...', 'banner bad'));
+  if(V.sim) bn.appendChild(el('div', 'SIMULATION (x' + V.speed + '): no commands are executed and the testbed is fake. Do not use this data.', 'banner practice'));
+  const c = V.cur, S = V.session, T = V.settings, lock = !!S.sessionId;
+  const sid = c ? c.scenarioId : $('taskSelect').value, s = sc(sid) || V.config.scenarios[0];
+  const state = c ? c.state : 'READY';
+  if(lock){ ['pid','condition','seed'].forEach(i => { dirty[i] = false; }); }
+  setIfIdle('observer', S.observer || '');
+  [['pid', S.pid], ['condition', S.condition], ['seed', S.seed]].forEach(([i, v]) => { if(!dirty[i]) setIfIdle(i, v); });
+  setChecked('blur', T.blur);
+  setIfIdle('catchN', T.catchN); setIfIdle('baselineS', T.baseline_s);
+  if(document.activeElement !== $('earlyEnd')) $('earlyEnd').checked = !!T.early_end;
+  if(document.activeElement !== $('earlyRec')) $('earlyRec').checked = !!T.early_recovery;
+  setIfIdle('dvA', (T.dashboard_version || {}).A || ''); setIfIdle('dvB', (T.dashboard_version || {}).B || '');
+  setIfIdle('earlyGrace', T.early_grace_s); setIfIdle('settleS', T.settle_s);
+  ['pid','condition','seed'].forEach(i => $(i).disabled = lock);
+  V.config.scenarios.forEach(x => { setChecked('inc_' + x.id, T.include[x.id] !== false); setIfIdle('win_' + x.id, T.window[x.id] ?? x.window_s); setIfIdle('rec_' + x.id, T.recovery[x.id] ?? x.min_recovery_s); });
+  $('taskSelect').disabled = !!c;
+  if(!c && V.planned && document.activeElement !== $('taskSelect') && !$('taskSelect').dataset.touched) $('taskSelect').value = V.planned;
+  if(c) $('taskSelect').value = c.scenarioId;
+  // modes
+  const autoOK = s.runner.auto;
+  $('modeAuto').disabled = !!c || !autoOK; $('modeManual').disabled = !!c;
+  if(c){ $('modeAuto').checked = c.mode === 'auto'; $('modeManual').checked = c.mode === 'manual'; }
+  else if(!autoOK){ $('modeManual').checked = true; }
+  else if(!$('modeManual').dataset.touched){ $('modeAuto').checked = true; }
+  const mode = c ? c.mode : ($('modeAuto').checked ? 'auto' : 'manual');
+  // session info and chips
+  $('sessionInfo').textContent = lock ? ('Session ' + S.sessionId + '  |  ' + V.done + ' of ' + S.order.length + ' trials saved' + (V.idle ? '  |  idle reports: ' + V.idle : '')) : 'No session started yet.';
+  const ch = $('orderChips'); ch.innerHTML = '';
+  S.order.forEach((id, i) => ch.appendChild(el('span', (i+1) + '. ' + sc(id).name, 'chip' + (i < V.done ? ' done' : (i === V.done ? ' next' : '')))));
+  // strip
+  const strip = $('strip'); strip.innerHTML = '';
+  STATES.concat(c && c.state === 'ERROR' ? ['ERROR'] : []).forEach(x => strip.appendChild(el('span', x, 'st' + (x === state ? (x === 'ERROR' ? ' err' : ' on') : ''))));
+  // details
+  const win = c ? c.windowS : (T.window[s.id] ?? s.window_s), rec = c ? c.minRecS : (T.recovery[s.id] ?? s.min_recovery_s);
+  $('meta').textContent = 'Type: ' + s.h4_type + '  |  Host: ' + s.host + '  |  Window: ' + win + ' s  |  Min recovery: ' + rec + ' s  |  Script: ' + s.script_status.replace('_',' ');
+  $('cmdLaunch').textContent = (c && c.launch_cmd) ? c.launch_cmd : (s.runner.launch_cmd ? s.runner.launch_cmd.replace('{minutes}', Math.ceil((win + 60)/60)).replace('{wan_iface}', V.config.runner.wan_iface) : s.launch);
+  $('cmdVerify').textContent = s.verify.join('\n'); $('cmdStop').textContent = (s.runner.stop_cmd || s.stop).replace('{wan_iface}', V.config.runner.wan_iface);
+  $('scNotes').textContent = s.notes + (s.panel && s.panel !== 'None' ? '  Panel: ' + s.panel : '');
+  $('details').className = (T.blur && state === 'ACTIVE') ? 'blur' : '';
+  // timer
+  const live = ['BASELINE','STARTING','ACTIVE','CLEANUP','RECOVERY'].includes(state);
+  let t = c ? c.state_elapsed_s + (live ? (performance.now() - recvAt)/1000 * V.speed : 0) : 0, cap = 0, label = 'Ready. Choose the scenario and start the trial.';
+  if(c){
+    if(state === 'BASELINE') label = mode === 'auto' ? 'Baseline: recording pre-fault readings, then the runner launches the fault' : 'Baseline: collecting readings. Run the fault command when ready';
+    else if(state === 'STARTING') label = mode === 'auto' ? 'Fault launched: waiting for the probes to confirm it is applied' : 'Waiting for you to confirm the fault is applied';
+    else if(state === 'ACTIVE'){ cap = c.windowS; label = 'Active window: ' + c.windowS + ' s from verified onset'; }
+    else if(state === 'CLEANUP') label = mode === 'auto' ? 'Clearing the fault and verifying it is gone' : 'Clear the fault now, then confirm';
+    else if(state === 'RECOVERY'){ cap = c.minRecS; label = 'Recovery: minimum ' + c.minRecS + ' s'; }
+    else if(state === 'FINALISING') label = 'Complete the outcome and save';
+    else if(state === 'ERROR') label = 'ERROR: ' + (c.problem || '');
+  }
+  const tm = $('timer'); tm.textContent = fmt(t);
+  tm.className = 'timer' + (cap && state === 'ACTIVE' ? (t >= cap ? ' over' : (t >= cap*0.8 ? ' warn' : '')) : '');
+  $('capLine').textContent = label;
+  $('detectedLine').textContent = c && c.detected ? (c.scenarioId === 'CATCH' ? 'False alarm recorded' : (c.detect_s !== null ? 'Detection recorded at ' + fmt(c.detect_s) + ' after verified onset' : '')) : '';
+  // buttons
+  const show = (id, on) => { $(id).style.display = on ? '' : 'none'; };
+  const manual = c && c.mode === 'manual';
+  show('bPrepare', !c); show('bCommand', manual && state === 'BASELINE'); show('bOnset', manual && state === 'STARTING' && c.scenarioId !== 'CATCH');
+  show('bCleared', manual && state === 'CLEANUP'); show('bRecovered', manual && state === 'RECOVERY');
+  $('bPrepare').textContent = mode === 'auto' ? 'Start trial (automatic)' : 'Start trial (manual)';
+  $('bPrepare').disabled = V.preparing;
+  $('bCommand').textContent = c && c.scenarioId === 'CATCH' ? 'Start catch window' : 'Fault command issued';
+  $('bRecovered').disabled = !(c && state === 'RECOVERY' && (c.state_elapsed_s + (performance.now()-recvAt)/1000*V.speed >= c.minRecS || $('recOverride').checked));
+  show('recOverrideLbl', manual && state === 'RECOVERY');
+  show('bEndWindow', c && state === 'ACTIVE' && c.scenarioId !== 'CATCH'); show('bSkipRec', c && c.mode === 'auto' && state === 'RECOVERY');
+  $('bAbort').disabled = !(c && ['BASELINE','STARTING','ACTIVE'].includes(state));
+  $('bProblem').disabled = !(c && state !== 'ERROR' && state !== 'FINALISING');
+  $('bHand').disabled = !S.pid;
+  show('manualConfirmLbl', c && state === 'ERROR');
+  // outcome
+  const outOn = !!c && ['ACTIVE','CLEANUP','RECOVERY','FINALISING','ERROR'].includes(state);
+  ['reported','descCorrect','notes','pdesc'].forEach(i => $(i).disabled = !outOn);
+  if(c){ setIfIdle('reported', c.reported); setIfIdle('descCorrect', c.desc); setIfIdle('notes', c.notes); setIfIdle('pdesc', c.pdesc || ''); }
+  else { setIfIdle('reported', ''); setIfIdle('descCorrect', ''); setIfIdle('notes', ''); setIfIdle('pdesc', ''); }
+  $('bSave').disabled = !(c && (state === 'FINALISING' || state === 'ERROR'));
+  $('bSave').textContent = c && state === 'ERROR' ? 'Resolve error and save as invalid' : 'Save trial';
+  // probes and summary
+  const pb = $('probeBody'); pb.innerHTML = '';
+  const names = c ? Object.keys(c.latest || {}) : [];
+  names.forEach(n => { const tr = el('tr'); const d = V.config.runner.probe_defs[n] || {}; tr.appendChild(el('td', n + (d.unit ? ' (' + d.unit + ')' : ''))); tr.appendChild(el('td', num(c.baseline[n]))); tr.appendChild(el('td', num(c.latest[n]))); pb.appendChild(tr); });
+  const sb = $('sumBody'); sb.innerHTML = '';
+  if(c && c.summary) Object.keys(c.summary).forEach(n => { const x = c.summary[n], tr = el('tr'); tr.appendChild(el('td', n)); [x.baseline, x.end_window, x.peak, x.post].forEach(v => tr.appendChild(el('td', num(v)))); sb.appendChild(tr); });
+  $('logTail').textContent = c ? [c.launch_log, c.stop_tail].filter(Boolean).join('\n').trim() : '';
+  // table
+  const body = $('logBody'); body.innerHTML = '';
+  V.trials.forEach((r, i) => {
+    const tr = el('tr');
+    [r.position, r.pid, r.condition, r.name, r.mode, r.detected ? 'yes' : 'no', r.reported_scenario, r.valid ? (r.final_correct ? 'DAR=1' : 'DAR=0') : 'n/a',
+     r.ttd_s || (r.valid && r.scenarioId !== 'CATCH' ? '>' + r.window_s : ''), r.false_alarm_events, r.valid ? 'yes' : 'no: ' + r.invalid_reason, r.notes].forEach(v => tr.appendChild(el('td', v)));
+    body.appendChild(tr);
+  });
+  $('rowCount').textContent = '(' + V.total + ')';
+  $('safetyInfo').textContent = V.safety ? 'Last safety clear: ' + V.safety : '';
+}
+
+$('taskSelect').addEventListener('change', () => { $('taskSelect').dataset.touched = '1'; if(V) render(); });
+$('modeAuto').addEventListener('change', () => { $('modeManual').dataset.touched = ''; render(); }); $('modeManual').addEventListener('change', () => { $('modeManual').dataset.touched = '1'; render(); });
+['pid','condition','seed'].forEach(i => { $(i).addEventListener('input', () => { dirty[i] = true; }); $(i).addEventListener('change', () => { dirty[i] = true; if(V && !V.session.sessionId) api('session', sess()); }); });
+const sess = () => ({pid:$('pid').value, condition:$('condition').value, seed:$('seed').value, observer:$('observer').value});
+$('observer').addEventListener('change', () => api('session', sess()));
+$('genOrder').addEventListener('click', async () => { if(await api('session', sess())) api('order'); });
+$('newPart').addEventListener('click', () => { if(confirm('Start a new participant? Logged trials are kept.')) { $('taskSelect').dataset.touched = ''; ['pid','condition','seed'].forEach(i => { dirty[i] = false; }); api('newparticipant'); } });
+$('blur').addEventListener('change', () => api('session', Object.assign(sess(), {blur:$('blur').checked})));
+$('dvA').addEventListener('change', () => api('settings', {dashboard_version:{A:$('dvA').value}}));
+$('dvB').addEventListener('change', () => api('settings', {dashboard_version:{B:$('dvB').value}}));
+$('earlyEnd').addEventListener('change', () => api('settings', {early_end:$('earlyEnd').checked}));
+$('earlyRec').addEventListener('change', () => api('settings', {early_recovery:$('earlyRec').checked}));
+$('earlyGrace').addEventListener('change', () => api('settings', {early_grace_s:+$('earlyGrace').value}));
+$('settleS').addEventListener('change', () => api('settings', {settle_s:+$('settleS').value}));
+$('bEndWindow').addEventListener('click', () => { if(confirm('End the active window now? Later reports will not be captured in this trial.')) api('endwindow'); });
+$('bSkipRec').addEventListener('click', () => api('skiprecovery'));
+$('catchN').addEventListener('change', () => api('settings', {catchN:+$('catchN').value}));
+$('baselineS').addEventListener('change', () => api('settings', {baseline_s:+$('baselineS').value}));
+$('bPrepare').addEventListener('click', async () => { if(!V.session.sessionId && !(await api('session', sess()))) return; await api('prepare', {scenario:$('taskSelect').value, mode:$('modeAuto').checked && !$('modeAuto').disabled ? 'auto' : 'manual'}); $('taskSelect').dataset.touched = ''; $('modeManual').dataset.touched = ''; });
+$('bCommand').addEventListener('click', () => api('command'));
+$('bOnset').addEventListener('click', async () => {
+  if(await api('onset')) return;
+  if(($('trialMsg').textContent || '').startsWith('NOT_APPLIED') && confirm('The probes do not show the fault yet.\n\nCheck the command is really running. Start the clock anyway?')){ $('trialMsg').textContent = ''; await api('onset', {force:true}); }
+});
+$('bCleared').addEventListener('click', () => api('cleared'));
+$('bRecovered').addEventListener('click', () => api('recovered', {override:$('recOverride').checked}).then(() => { $('recOverride').checked = false; }));
+$('bHand').addEventListener('click', () => api('hand'));
+$('bAbort').addEventListener('click', () => { if(confirm('Abort this trial? It will be kept in the data as invalid.')) api('abort', {reason:$('abortReason').value}); });
+$('bProblem').addEventListener('click', () => api('problem', {reason:$('abortReason').value}));
+['reported','descCorrect','notes','pdesc'].forEach(i => $(i).addEventListener('change', () => api('outcome', {reported:$('reported').value, desc:$('descCorrect').value, notes:$('notes').value, pdesc:$('pdesc').value})));
+$('bSave').addEventListener('click', async () => {
+  await api('outcome', {reported:$('reported').value, desc:$('descCorrect').value, notes:$('notes').value, pdesc:$('pdesc').value});
+  if(V.cur && V.cur.state === 'ERROR'){ if(confirm('Confirm the testbed has been cleaned up and verified. This trial will be saved as invalid.')) api('resolve', {confirm_manual:$('manualConfirm').checked}); }
+  else api('save');
+});
+$('bSafety').addEventListener('click', () => { if(confirm('Run every stop and clear command now?')) api('safety_clear'); });
+$('bClear').addEventListener('click', () => { const t = prompt('This moves the whole database aside and starts empty. Download a backup first. Type DELETE to confirm.'); if(t === 'DELETE') api('clear', {confirm:'DELETE'}); });
+const dl = p => { location.href = '/api/' + p + (p.includes('?') ? '&' : '?') + 't=' + encodeURIComponent(TOKEN); };
+$('dlXlsx').addEventListener('click', () => dl('phase3_data.xlsx')); $('dlTrialsSemi').addEventListener('click', () => dl('trials.csv?sep=semi'));
+$('dlTrials').addEventListener('click', () => dl('trials.csv')); $('dlEvents').addEventListener('click', () => dl('events.csv'));
+$('dlSamples').addEventListener('click', () => dl('samples.csv')); $('dlBackup').addEventListener('click', () => dl('backup.json'));
+window.addEventListener('beforeunload', e => { if(V && V.cur && V.cur.mode === 'manual'){ e.preventDefault(); e.returnValue = ''; } });
+
+poll(); setInterval(poll, 700); setInterval(() => { if(V) render(); }, 250);
+</script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+Applying netem on wlx90de80e8fae5: delay 200ms, for 4 minute(s).
+This delays ALL traffic the gateway sends to the internet during the test, not just the QoE probe.
+Active. Will auto-clear in 4 minute(s). Ctrl+C clears it immediately.
+Terminated
