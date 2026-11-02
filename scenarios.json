@@ -504,7 +504,7 @@
       "min_recovery_s": 120,
       "script_status": "needs_review",
       "order": null,
-      "launch": "./ap_outage_test.sh 30 root@192.168.1.100",
+      "launch": "./ap_outage_test.sh 50 root@192.168.1.100",
       "verify": [
         "Gateway: ping 192.168.1.101 (100% loss while blocked)",
         "AP1: iw dev phy1-mesh0 station dump (AP2 missing while blocked)",
@@ -516,7 +516,7 @@
       "notes": "Blocks the AP1 to AP2 mesh peer link for 30 s from AP1 (wired), then re-opens it. AP2 itself is never touched. AP2 is unreachable from the gateway meanwhile, so probes through AP2 return nothing during the outage. Keep participant and researcher devices off AP2. Test on the bench first.",
       "runner": {
         "auto": true,
-        "launch_cmd": "./ap_outage_test.sh 30 root@192.168.1.100",
+        "launch_cmd": "./ap_outage_test.sh 50 root@192.168.1.100",
         "stop_cmd": "./stop_fault.sh apoutage root@192.168.1.100",
         "extra": [
           "ap2_reach",
