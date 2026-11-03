@@ -1,0 +1,21 @@
+Checking connectivity to root@192.168.1.101...
+Connectivity OK.
+
+Launching flap loop on 192.168.1.101 (5 cycles, down=3s, up=20s)...
+launched with PID 827
+
+Flap loop launched and detached from this SSH session, it will keep
+running on the AP even if this connection drops during a 'down' cycle.
+
+Target: root@192.168.1.101
+Estimated total duration: 115s (~1 min)
+
+To stop this run early:
+  ./stop_fault.sh flap root@192.168.1.101
+
+Check progress once the AP is reachable again:
+  ssh root@192.168.1.101 'cat /tmp/flap_test.log'
+  ssh root@192.168.1.101 'logread | grep flap_test'
+
+Check the kernel counter directly:
+  ssh root@192.168.1.101 'cat /sys/class/net/phy0-ap0/carrier_changes'
