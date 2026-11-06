@@ -1,0 +1,13 @@
+
+Scheduling CPU fault (target=95%, auto-clears after 4 minute(s))...
+Running remotely on root@192.168.1.101 via SSH...
+launched with PID 2057
+
+Fault scheduled. No further commands needed, cleanup happens automatically.
+
+Check progress:
+  ssh root@192.168.1.101 'cat /tmp/cpufill_test.log'
+  ssh root@192.168.1.101 'top -bn1 | head -5'   # confirm actual achieved load
+
+To cancel early instead of waiting for auto-cleanup:
+  ./stop_fault.sh cpufill root@192.168.1.101
