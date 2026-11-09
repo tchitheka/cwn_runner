@@ -1,0 +1,933 @@
+ETHTOOL(8)                                 System Manager's Manual                                ETHTOOL(8)
+
+NNAAMMEE
+       ethtool - query or control network driver and hardware settings
+
+SSYYNNOOPPSSIISS
+       eetthhttooooll _d_e_v_n_a_m_e
+
+       eetthhttooooll --hh||----hheellpp
+
+       eetthhttooooll ----vveerrssiioonn
+
+       eetthhttooooll [----ddeebbuugg _N] _a_r_g_s
+
+       eetthhttooooll [[----jjssoonn]] _a_r_g_s
+
+       eetthhttooooll [[--II || ----iinncclluuddee--ssttaattiissttiiccss]] _a_r_g_s
+
+       eetthhttooooll ----mmoonniittoorr [ _c_o_m_m_a_n_d ] [ _d_e_v_n_a_m_e ]
+
+       eetthhttooooll --aa||----sshhooww--ppaauussee _d_e_v_n_a_m_e
+
+       eetthhttooooll --AA||----ppaauussee _d_e_v_n_a_m_e [aauuttoonneegg oonn|ooffff] [rrxx oonn|ooffff] [ttxx oonn|ooffff]
+
+       eetthhttooooll --cc||----sshhooww--ccooaalleessccee _d_e_v_n_a_m_e
+
+       eetthhttooooll --CC||----ccooaalleessccee _d_e_v_n_a_m_e [aaddaappttiivvee--rrxx oonn|ooffff] [aaddaappttiivvee--ttxx oonn|ooffff] [rrxx--uusseeccss _N] [rrxx--ffrraammeess _N]
+              [rrxx--uusseeccss--iirrqq _N] [rrxx--ffrraammeess--iirrqq _N] [ttxx--uusseeccss _N] [ttxx--ffrraammeess _N] [ttxx--uusseeccss--iirrqq _N]
+              [ttxx--ffrraammeess--iirrqq _N] [ssttaattss--bblloocckk--uusseeccss _N] [ppkktt--rraattee--llooww _N] [rrxx--uusseeccss--llooww _N] [rrxx--ffrraammeess--llooww _N]
+              [ttxx--uusseeccss--llooww _N] [ttxx--ffrraammeess--llooww _N] [ppkktt--rraattee--hhiigghh _N] [rrxx--uusseeccss--hhiigghh _N] [rrxx--ffrraammeess--hhiigghh _N]
+              [ttxx--uusseeccss--hhiigghh _N] [ttxx--ffrraammeess--hhiigghh _N] [ssaammppllee--iinntteerrvvaall _N] [ccqqee--mmooddee--rrxx oonn|ooffff]
+              [ccqqee--mmooddee--ttxx oonn|ooffff]
+
+       eetthhttooooll --gg||----sshhooww--rriinngg _d_e_v_n_a_m_e
+
+       eetthhttooooll --GG||----sseett--rriinngg _d_e_v_n_a_m_e [rrxx _N] [rrxx--mmiinnii _N] [rrxx--jjuummbboo _N] [ttxx _N]
+
+       eetthhttooooll --ii||----ddrriivveerr _d_e_v_n_a_m_e
+
+       eetthhttooooll --dd||----rreeggiisstteerr--dduummpp _d_e_v_n_a_m_e [rraaww oonn|ooffff] [hheexx oonn|ooffff] [ffiillee _n_a_m_e]
+
+       eetthhttooooll --ee||----eeeepprroomm--dduummpp _d_e_v_n_a_m_e [rraaww oonn|ooffff] [ooffffsseett _N] [lleennggtthh _N]
+
+       eetthhttooooll --EE||----cchhaannggee--eeeepprroomm _d_e_v_n_a_m_e [mmaaggiicc _N] [ooffffsseett _N] [lleennggtthh _N] [vvaalluuee _N]
+
+       eetthhttooooll --kk||----sshhooww--ffeeaattuurreess||----sshhooww--ooffffllooaadd _d_e_v_n_a_m_e
+
+       eetthhttooooll --KK||----ffeeaattuurreess||----ooffffllooaadd _d_e_v_n_a_m_e _f_e_a_t_u_r_e oonn|ooffff ...
+
+       eetthhttooooll --pp||----iiddeennttiiffyy _d_e_v_n_a_m_e [_N]
+
+       eetthhttooooll --PP||----sshhooww--ppeerrmmaaddddrr _d_e_v_n_a_m_e
+
+       eetthhttooooll --rr||----nneeggoottiiaattee _d_e_v_n_a_m_e
+
+       eetthhttooooll --SS||----ssttaattiissttiiccss _d_e_v_n_a_m_e [----aallll--ggrroouuppss|----ggrroouuppss [eetthh--pphhyy] [eetthh--mmaacc] [eetthh--ccttrrll] ]
+
+       eetthhttooooll ----pphhyy--ssttaattiissttiiccss _d_e_v_n_a_m_e
+
+       eetthhttooooll --tt||----tteesstt _d_e_v_n_a_m_e [oofffflliinnee|oonnlliinnee|eexxtteerrnnaall__llbb]
+
+       eetthhttooooll --ss _d_e_v_n_a_m_e [ssppeeeedd _N] [llaanneess _N] [dduupplleexx hhaallff|ffuullll] [ppoorrtt ttpp|aauuii|bbnncc|mmiiii] [mmddiixx aauuttoo|oonn|ooffff]
+              [aauuttoonneegg oonn|ooffff] [aaddvveerrttiissee _N[//_M] | aaddvveerrttiissee _m_o_d_e oonn|ooffff ...]  [pphhyyaadd _N]
+              [xxccvvrr iinntteerrnnaall|eexxtteerrnnaall] [wwooll _N[//_M] | wwooll pp|uu|mm|bb|aa|gg|ss|ff||dd......]]  [ssooppaassss _x_x::_y_y::_z_z::_a_a::_b_b::_c_c]
+              [mmaasstteerr--ssllaavvee pprreeffeerrrreedd--mmaasstteerr|pprreeffeerrrreedd--ssllaavvee|ffoorrcceedd--mmaasstteerr|ffoorrcceedd--ssllaavvee] [mmssggllvvll _N[/_M] |
+              mmssggllvvll _t_y_p_e oonn|ooffff ...]
+
+       eetthhttooooll --nn||--uu||----sshhooww--nnffcc||----sshhooww--nnttuuppllee _d_e_v_n_a_m_e
+              [ rrxx--ffllooww--hhaasshh ttccpp44|uuddpp44|aahh44|eesspp44|ssccttpp44|ttccpp66|uuddpp66|aahh66|eesspp66|ssccttpp66 ||
+              rruullee _N ]
+
+       eetthhttooooll --NN||--UU||----ccoonnffiigg--nnffcc||----ccoonnffiigg--nnttuuppllee _d_e_v_n_a_m_e
+              rrxx--ffllooww--hhaasshh ttccpp44|uuddpp44|aahh44|eesspp44|ssccttpp44|ttccpp66|uuddpp66|aahh66|eesspp66|ssccttpp66 mm|vv|tt|ss|dd|ff|nn|rr... ||
+              ffllooww--ttyyppee eetthheerr||iipp44||ttccpp44||uuddpp44||ssccttpp44||aahh44||eesspp44||iipp66||ttccpp66||uuddpp66||aahh66||eesspp66||ssccttpp66
+              [ssrrcc _x_x::_y_y::_z_z::_a_a::_b_b::_c_c [mm _x_x::_y_y::_z_z::_a_a::_b_b::_c_c]] [ddsstt _x_x::_y_y::_z_z::_a_a::_b_b::_c_c [mm _x_x::_y_y::_z_z::_a_a::_b_b::_c_c]]
+              [pprroottoo _N [mm _N]] [ssrrcc--iipp _i_p_-_a_d_d_r_e_s_s [mm _i_p_-_a_d_d_r_e_s_s]] [ddsstt--iipp _i_p_-_a_d_d_r_e_s_s [mm _i_p_-_a_d_d_r_e_s_s]]
+              [ttooss _N [mm _N]] [ttccllaassss _N [mm _N]] [ll44pprroottoo _N [mm _N]] [ssrrcc--ppoorrtt _N [mm _N]] [ddsstt--ppoorrtt _N [mm _N]]
+              [ssppii _N [mm _N]] [ll44ddaattaa _N [mm _N]] [vvllaann--eettyyppee _N [mm _N]] [vvllaann _N [mm _N]] [uusseerr--ddeeff _N [mm _N]] [ddsstt--
+              mmaacc _x_x::_y_y::_z_z::_a_a::_b_b::_c_c [mm _x_x::_y_y::_z_z::_a_a::_b_b::_c_c]] [aaccttiioonn _N] [ccoonntteexxtt _N] [lloocc _N] |
+              ddeelleettee _N
+
+       eetthhttooooll --ww||----ggeett--dduummpp _d_e_v_n_a_m_e [ddaattaa _f_i_l_e_n_a_m_e]
+
+       eetthhttooooll --WW||----sseett--dduummpp _d_e_v_n_a_m_e _N
+
+       eetthhttooooll --TT||----sshhooww--ttiimmee--ssttaammppiinngg _d_e_v_n_a_m_e
+
+       eetthhttooooll --xx||----sshhooww--rrxxffhh--iinnddiirr||----sshhooww--rrxxffhh _d_e_v_n_a_m_e
+
+       eetthhttooooll --XX||----sseett--rrxxffhh--iinnddiirr||----rrxxffhh _d_e_v_n_a_m_e [hhkkeeyy _x_x::_y_y::_z_z::_a_a::_b_b::_c_c:...]  [ssttaarrtt _N] [ eeqquuaall _N |
+              wweeiigghhtt _W_0 _W_1 ... | ddeeffaauulltt ] [hhffuunncc _F_U_N_C] [ccoonntteexxtt _C_T_X | nneeww] [ddeelleettee]
+
+       eetthhttooooll --ff||----ffllaasshh _d_e_v_n_a_m_e _f_i_l_e [_N]
+
+       eetthhttooooll --ll||----sshhooww--cchhaannnneellss _d_e_v_n_a_m_e
+
+       eetthhttooooll --LL||----sseett--cchhaannnneellss _d_e_v_n_a_m_e [rrxx _N] [ttxx _N] [ootthheerr _N] [ccoommbbiinneedd _N]
+
+       eetthhttooooll --mm||----dduummpp--mmoodduullee--eeeepprroomm||----mmoodduullee--iinnffoo _d_e_v_n_a_m_e [rraaww oonn|ooffff] [hheexx oonn|ooffff] [ooffffsseett _N] [lleennggtthh _N]
+              [ppaaggee _N] [bbaannkk _N] [ii22cc _N]
+
+       eetthhttooooll ----sshhooww--pprriivv--ffllaaggss _d_e_v_n_a_m_e
+
+       eetthhttooooll ----sseett--pprriivv--ffllaaggss _d_e_v_n_a_m_e _f_l_a_g oonn|ooffff ...
+
+       eetthhttooooll ----sshhooww--eeeeee _d_e_v_n_a_m_e
+
+       eetthhttooooll ----sseett--eeeeee _d_e_v_n_a_m_e [eeeeee oonn|ooffff] [ttxx--llppii oonn|ooffff] [ttxx--ttiimmeerr _N] [aaddvveerrttiissee _N]
+
+       eetthhttooooll ----sseett--pphhyy--ttuunnaabbllee _d_e_v_n_a_m_e [ ddoowwnnsshhiifftt oonn|ooffff [ccoouunntt _N] ] [ ffaasstt--lliinnkk--ddoowwnn oonn|ooffff [mmsseeccss _N] ]
+              [ eenneerrggyy--ddeetteecctt--ppoowweerr--ddoowwnn oonn|ooffff [mmsseeccss _N] ]
+
+       eetthhttooooll ----ggeett--pphhyy--ttuunnaabbllee _d_e_v_n_a_m_e [ddoowwnnsshhiifftt] [ffaasstt--lliinnkk--ddoowwnn] [eenneerrggyy--ddeetteecctt--ppoowweerr--ddoowwnn]
+
+       eetthhttooooll ----ggeett--ttuunnaabbllee _d_e_v_n_a_m_e [rrxx--ccooppyybbrreeaakk] [ttxx--ccooppyybbrreeaakk] [ppffcc--pprreevveennttiioonn--ttoouutt]
+
+       eetthhttooooll ----sseett--ttuunnaabbllee _d_e_v_n_a_m_e [rrxx--ccooppyybbrreeaakk _N] [ttxx--ccooppyybbrreeaakk _N] [ppffcc--pprreevveennttiioonn--ttoouutt _N]
+
+       eetthhttooooll ----rreesseett _d_e_v_n_a_m_e [ffllaaggss _N] [mmggmmtt] [mmggmmtt--sshhaarreedd] [iirrqq] [iirrqq--sshhaarreedd] [ddmmaa] [ddmmaa--sshhaarreedd] [ffiilltteerr]
+              [ffiilltteerr--sshhaarreedd] [ooffffllooaadd] [ooffffllooaadd--sshhaarreedd] [mmaacc] [mmaacc--sshhaarreedd] [pphhyy] [pphhyy--sshhaarreedd] [rraamm] [rraamm--
+              sshhaarreedd] [aapp] [aapp--sshhaarreedd] [ddeeddiiccaatteedd] [aallll]
+
+       eetthhttooooll ----sshhooww--ffeecc _d_e_v_n_a_m_e
+
+       eetthhttooooll ----sseett--ffeecc _d_e_v_n_a_m_e eennccooddiinngg aauuttoo|ooffff|rrss|bbaasseerr|llllrrss [...]
+
+       eetthhttooooll --QQ||----ppeerr--qquueeuuee _d_e_v_n_a_m_e [qquueeuuee__mmaasskk _%_x] _s_u_b___c_o_m_m_a_n_d ...
+               .
+
+       eetthhttooooll ----ccaabbllee--tteesstt _d_e_v_n_a_m_e
+
+       eetthhttooooll ----ccaabbllee--tteesstt--ttddrr _d_e_v_n_a_m_e [ffiirrsstt _N] [llaasstt _N] [sstteepp _N] [ppaaiirr _N]
+
+       eetthhttooooll ----sshhooww--ttuunnnneellss _d_e_v_n_a_m_e
+
+DDEESSCCRRIIPPTTIIOONN
+       eetthhttooooll is used to query and control network device driver and hardware  settings,  particularly  for
+       wired Ethernet devices.
+
+       _d_e_v_n_a_m_e is the name of the network device on which ethtool should operate.
+
+OOPPTTIIOONNSS
+       eetthhttooooll  with  a  single argument specifying the device name prints current settings of the specified
+       device.
+
+       --hh ----hheellpp
+              Shows a short help message.
+
+       ----vveerrssiioonn
+              Shows the ethtool version number.
+
+       ----ddeebbuugg _N
+              Turns on debugging messages. Argument is interpreted as a mask:
+
+              00xx0011  PPaarrsseerr iinnffoorrmmaattiioonn
+
+       ----jjssoonn Output results in JavaScript Object Notation (JSON). Only a subset of  options  support  this.
+              Those which do not will continue to output plain text in the presence of this option.
+
+       --II ----iinncclluuddee--ssttaattiissttiiccss
+              Include  command-related  statistics in the output. This option allows displaying relevant de‐
+              vice statistics for selected get commands.
+
+       --aa ----sshhooww--ppaauussee
+              Queries the specified Ethernet device for pause parameter information.
+
+       --AA ----ppaauussee
+              Changes the pause parameters of the specified Ethernet device.
+
+           aauuttoonneegg oonn|ooffff
+                  Specifies whether pause autonegotiation should be enabled.
+
+           rrxx oonn|ooffff
+                  Specifies whether RX pause should be enabled.
+
+           ttxx oonn|ooffff
+                  Specifies whether TX pause should be enabled.
+
+       --cc ----sshhooww--ccooaalleessccee
+              Queries the specified network device for coalescing information.
+
+       --CC ----ccooaalleessccee
+              Changes the coalescing settings of the specified network device.
+
+       --gg ----sshhooww--rriinngg
+              Queries the specified network device for rx/tx ring parameter information.
+
+       --GG ----sseett--rriinngg
+              Changes the rx/tx ring parameters of the specified network device.
+
+           rrxx _N   Changes the number of ring entries for the Rx ring.
+
+           rrxx--mmiinnii _N
+                  Changes the number of ring entries for the Rx Mini ring.
+
+           rrxx--jjuummbboo _N
+                  Changes the number of ring entries for the Rx Jumbo ring.
+
+           ttxx _N   Changes the number of ring entries for the Tx ring.
+
+       --ii ----ddrriivveerr
+              Queries the specified network device for associated driver information.
+
+       --dd ----rreeggiisstteerr--dduummpp
+              Retrieves and prints a register dump for the specified network device.   The  register  format
+              for  some  devices  is known and decoded others are printed in hex.  When _r_a_w is enabled, then
+              ethtool dumps the raw register data to stdout.  If _f_i_l_e is specified,  then  use  contents  of
+              previous raw register dump, rather than reading from the device.
+
+       --ee ----eeeepprroomm--dduummpp
+              Retrieves  and  prints  an EEPROM dump for the specified network device.  When raw is enabled,
+              then it dumps the raw EEPROM data to stdout. The length and offset  parameters  allow  dumping
+              certain portions of the EEPROM.  Default is to dump the entire EEPROM.
+
+           rraaww _o_n_|_o_f_f
+
+           ooffffsseett _N
+
+           lleennggtthh _N
+
+       --EE ----cchhaannggee--eeeepprroomm
+              If value is specified, changes EEPROM byte for the specified network device.  offset and value
+              specify which byte and it's new value. If value is not specified, stdin is read and written to
+              the  EEPROM. The length and offset parameters allow writing to certain portions of the EEPROM.
+              Because of the persistent nature of writing to the EEPROM, a device-specific magic key must be
+              specified to prevent the accidental writing to the EEPROM.
+
+       --kk ----sshhooww--ffeeaattuurreess ----sshhooww--ooffffllooaadd
+              Queries the specified network device for the state of protocol offload and other features.
+
+       --KK ----ffeeaattuurreess ----ooffffllooaadd
+              Changes  the  offload parameters and other features of the specified network device.  The fol‐
+              lowing feature names are built-in and others may be defined by the kernel.
+
+           rrxx oonn|ooffff
+                  Specifies whether RX checksumming should be enabled.
+
+           ttxx oonn|ooffff
+                  Specifies whether TX checksumming should be enabled.
+
+           ssgg oonn|ooffff
+                  Specifies whether scatter-gather should be enabled.
+
+           ttssoo oonn|ooffff
+                  Specifies whether TCP segmentation offload should be enabled.
+
+           uuffoo oonn|ooffff
+                  Specifies whether UDP fragmentation offload should be enabled
+
+           ggssoo oonn|ooffff
+                  Specifies whether generic segmentation offload should be enabled
+
+           ggrroo oonn|ooffff
+                  Specifies whether generic receive offload should be enabled
+
+           llrroo oonn|ooffff
+                  Specifies whether large receive offload should be enabled
+
+           rrxxvvllaann oonn|ooffff
+                  Specifies whether RX VLAN acceleration should be enabled
+
+           ttxxvvllaann oonn|ooffff
+                  Specifies whether TX VLAN acceleration should be enabled
+
+           nnttuuppllee oonn|ooffff
+                  Specifies whether Rx ntuple filters and actions should be enabled
+
+           rrxxhhaasshh oonn|ooffff
+                  Specifies whether receive hashing offload should be enabled
+
+       --pp ----iiddeennttiiffyy
+              Initiates adapter-specific action intended to  enable  an  operator  to  easily  identify  the
+              adapter  by  sight.  Typically this involves blinking one or more LEDs on the specific network
+              port.
+
+           [ _N]   Length of time to perform phys-id, in seconds.
+
+       --PP ----sshhooww--ppeerrmmaaddddrr
+              Queries the specified network device for permanent hardware address.
+
+       --rr ----nneeggoottiiaattee
+              Restarts auto-negotiation on the specified Ethernet device, if auto-negotiation is enabled.
+
+       --SS ----ssttaattiissttiiccss
+              Queries the specified network device for standard (IEEE, IETF, etc.), or NIC- and  driver-spe‐
+              cific  statistics.  NIC- and driver-specific statistics are requested when no group of statis‐
+              tics is specified.
+
+              NIC- and driver-specific statistics and standard statistics are independent, devices  may  im‐
+              plement  either,  both or none. There is little commonality between naming of NIC- and driver-
+              specific statistics across vendors.
+
+           ----aallll--ggrroouuppss
+
+           ----ggrroouuppss [[eetthh--pphhyy]] [[eetthh--mmaacc]] [[eetthh--ccttrrll]] [[rrmmoonn]]
+                  Request groups of standard device statistics.
+
+       ----pphhyy--ssttaattiissttiiccss
+              Queries the specified network device for PHY specific statistics.
+
+       --tt ----tteesstt
+              Executes adapter selftest on the specified network device. Possible test modes are:
+
+           oofffflliinnee
+                  Perform full set of tests, possibly interrupting normal operation during the tests,
+
+           oonnlliinnee Perform limited set of tests, not interrupting normal operation,
+
+           eexxtteerrnnaall__llbb
+                  Perform full set of tests, as for oofffflliinnee, and additionally an external-loopback test.
+
+       --ss ----cchhaannggee
+              Allows changing some or all settings of the specified network device.  All  following  options
+              only apply if --ss was specified.
+
+           ssppeeeedd _N
+                  Set  speed  in  Mb/s.   eetthhttooooll with just the device name as an argument will show you the
+                  supported device speeds.
+
+           llaanneess _N
+                  Set number of lanes.
+
+           dduupplleexx hhaallff|ffuullll
+                  Sets full or half duplex mode.
+
+           ppoorrtt ttpp|aauuii|bbnncc|mmiiii
+                  Selects device port.
+
+           mmaasstteerr--ssllaavvee pprreeffeerrrreedd--mmaasstteerr|pprreeffeerrrreedd--ssllaavvee|ffoorrcceedd--mmaasstteerr|ffoorrcceedd--ssllaavvee
+                  Configure MASTER/SLAVE role of the PHY. When the PHY is  configured  as  MASTER,  the  PMA
+                  Transmit  function  shall  source  TX_TCLK  from  a local clock source. When configured as
+                  SLAVE, the PMA Transmit function shall source TX_TCLK from the clock recovered  from  data
+                  stream provided by MASTER. Not all devices support this.
+
+                  pprreeffeerrrreedd--mmaasstteerr   Prefer MASTER role on autonegotiation
+                  pprreeffeerrrreedd--ssllaavvee    Prefer SLAVE role on autonegotiation
+                  ffoorrcceedd--mmaasstteerr      Force the PHY in MASTER role. Can be used without autonegotiation
+                  ffoorrcceedd--ssllaavvee       Force the PHY in SLAVE role. Can be used without autonegotiation
+
+           mmddiixx aauuttoo|oonn|ooffff
+                  Selects  MDI-X  mode  for port. May be used to override the automatic detection feature of
+                  most adapters. An argument of aauuttoo means automatic detection of MDI status, oonn forces MDI-
+                  X  (crossover) mode, while ooffff means MDI (straight through) mode.  The driver should guar‐
+                  antee that this command takes effect immediately, and if necessary may reset the  link  to
+                  cause the change to take effect.
+
+           aauuttoonneegg oonn|ooffff
+                  Specifies  whether  autonegotiation  should  be enabled. Autonegotiation is enabled by de‐
+                  fault, but in some network devices may have trouble with it, so you can disable it if  re‐
+                  ally necessary.
+
+           aaddvveerrttiissee _N
+                  Sets  the  speed  and duplex advertised by autonegotiation.  The argument is a hexadecimal
+                  value using one or a combination of the following values:
+
+                  00xx000011                       10baseT Half
+                  00xx000022                       10baseT Full
+                  00xx000044                       100baseT Half
+                  00xx000088                       100baseT Full
+                  00xx8800000000000000000000000000000000         100baseT1 Full
+                  00xx4400000000000000000000000000000000000000000000   100baseFX Half
+                  00xx8800000000000000000000000000000000000000000000   100baseFX Full
+                  00xx001100                       1000baseT Half               ((nnoott ssuuppppoorrtteedd bbyy IIEEEEEE ssttaannddaarrddss))
+                  00xx002200                       1000baseT Full
+                  00xx2200000000                     1000baseKX Full
+                  00xx2200000000000000000000               1000baseX Full
+                  00xx110000000000000000000000000000000000        1000baseT1 Full
+                  00xx88000000                      2500baseX Full               ((nnoott ssuuppppoorrtteedd bbyy IIEEEEEE ssttaannddaarrddss))
+                  00xx880000000000000000000000              2500baseT Full
+                  00xx11000000000000000000000000             5000baseT Full
+                  00xx11000000                      10000baseT Full
+                  00xx4400000000                     10000baseKX4 Full
+                  00xx8800000000                     10000baseKR Full
+                  00xx110000000000                    10000baseR_FEC
+                  00xx4400000000000000000000               10000baseCR Full
+                  00xx8800000000000000000000               10000baseSR Full
+                  00xx110000000000000000000000              10000baseLR Full
+                  00xx220000000000000000000000              10000baseLRM Full
+                  00xx440000000000000000000000              10000baseER Full
+                  00xx220000000000                    20000baseMLD2 Full           ((nnoott ssuuppppoorrtteedd bbyy IIEEEEEE ssttaannddaarrddss))
+                  00xx440000000000                    20000baseKR2 Full            ((nnoott ssuuppppoorrtteedd bbyy IIEEEEEE ssttaannddaarrddss))
+                  00xx8800000000000000                  25000baseCR Full
+                  00xx110000000000000000                 25000baseKR Full
+                  00xx220000000000000000                 25000baseSR Full
+                  00xx880000000000                    40000baseKR4 Full
+                  00xx11000000000000                   40000baseCR4 Full
+                  00xx22000000000000                   40000baseSR4 Full
+                  00xx44000000000000                   40000baseLR4 Full
+                  00xx440000000000000000                 50000baseCR2 Full
+                  00xx880000000000000000                 50000baseKR2 Full
+                  00xx1100000000000000000000               50000baseSR2 Full
+                  00xx1100000000000000000000000000            50000baseKR Full
+                  00xx2200000000000000000000000000            50000baseSR Full
+                  00xx4400000000000000000000000000            50000baseCR Full
+                  00xx8800000000000000000000000000            50000baseLR_ER_FR Full
+                  00xx110000000000000000000000000000           50000baseDR Full
+                  00xx88000000000000                   56000baseKR4 Full
+                  00xx1100000000000000                  56000baseCR4 Full
+                  00xx2200000000000000                  56000baseSR4 Full
+                  00xx4400000000000000                  56000baseLR4 Full
+                  00xx11000000000000000000                100000baseKR4 Full
+                  00xx22000000000000000000                100000baseSR4 Full
+                  00xx44000000000000000000                100000baseCR4 Full
+                  00xx88000000000000000000                100000baseLR4_ER4 Full
+                  00xx220000000000000000000000000000           100000baseKR2 Full
+                  00xx440000000000000000000000000000           100000baseSR2 Full
+                  00xx880000000000000000000000000000           100000baseCR2 Full
+                  00xx11000000000000000000000000000000          100000baseLR2_ER2_FR2 Full
+                  00xx22000000000000000000000000000000          100000baseDR2 Full
+                  00xx88000000000000000000000000000000000000       100000baseKR Full
+                  00xx1100000000000000000000000000000000000000      100000baseSR Full
+                  00xx2200000000000000000000000000000000000000      100000baseLR_ER_FR Full
+                  00xx4400000000000000000000000000000000000000      100000baseCR Full
+                  00xx8800000000000000000000000000000000000000      100000baseDR Full
+                  00xx44000000000000000000000000000000          200000baseKR4 Full
+                  00xx88000000000000000000000000000000          200000baseSR4 Full
+                  00xx1100000000000000000000000000000000         200000baseLR4_ER4_FR4 Full
+                  00xx2200000000000000000000000000000000         200000baseDR4 Full
+                  00xx4400000000000000000000000000000000         200000baseCR4 Full
+                  00xx110000000000000000000000000000000000000000     200000baseKR2 Full
+                  00xx220000000000000000000000000000000000000000     200000baseSR2 Full
+                  00xx440000000000000000000000000000000000000000     200000baseLR2_ER2_FR2 Full
+                  00xx880000000000000000000000000000000000000000     200000baseDR2 Full
+                  00xx11000000000000000000000000000000000000000000    200000baseCR2 Full
+                  00xx220000000000000000000000000000000000        400000baseKR8 Full
+                  00xx440000000000000000000000000000000000        400000baseSR8 Full
+                  00xx880000000000000000000000000000000000        400000baseLR8_ER8_FR8 Full
+                  00xx11000000000000000000000000000000000000       400000baseDR8 Full
+                  00xx22000000000000000000000000000000000000       400000baseCR8 Full
+                  00xx22000000000000000000000000000000000000000000    400000baseKR4 Full
+                  00xx44000000000000000000000000000000000000000000    400000baseSR4 Full
+                  00xx88000000000000000000000000000000000000000000    400000baseLR4_ER4_FR4 Full
+                  00xx1100000000000000000000000000000000000000000000   400000baseDR4 Full
+                  00xx2200000000000000000000000000000000000000000000   400000baseCR4 Full
+
+           pphhyyaadd _N
+                  PHY address.
+
+           xxccvvrr iinntteerrnnaall|eexxtteerrnnaall
+                  Selects transceiver type. Currently only internal and external can be  specified,  in  the
+                  future further types might be added.
+
+           wwooll pp|uu|mm|bb|aa|gg|ss|ff||dd......
+                  Sets Wake-on-LAN options.  Not all devices support this.  The argument to this option is a
+                  string of characters specifying which options to enable.
+
+                  pp   Wake on PHY activity
+                  uu   Wake on unicast messages
+                  mm   Wake on multicast messages
+                  bb   Wake on broadcast messages
+                  aa   Wake on ARP
+                  gg   Wake on MagicPacket™
+                  ss   Enable SecureOn™ password for MagicPacket™
+                  ff   Wake on filter(s)
+                  dd   Disable (wake on  nothing).   This  option
+                      clears all previous options.
+
+           ssooppaassss _x_x::_y_y::_z_z::_a_a::_b_b::_c_c
+                  Sets  the SecureOn™ password.  The argument to this option must be 6 bytes in Ethernet MAC
+                  hex format (_x_x::_y_y::_z_z::_a_a::_b_b::_c_c).
+
+           mmssggllvvll _N
+           mmssggllvvll _t_y_p_e oonn|ooffff ...
+                  Sets the driver message type flags by name or number. _t_y_p_e names the type  of  message  to
+                  enable  or disable; _N specifies the new flags numerically. The defined type names and num‐
+                  bers are:
+
+                  ddrrvv         0x0001  General driver status
+                  pprroobbee       0x0002  Hardware probing
+                  lliinnkk        0x0004  Link state
+                  ttiimmeerr       0x0008  Periodic status check
+                  iiffddoowwnn      0x0010  Interface being brought down
+                  iiffuupp        0x0020  Interface being brought up
+                  rrxx__eerrrr      0x0040  Receive error
+                  ttxx__eerrrr      0x0080  Transmit error
+                  ttxx__qquueeuueedd   0x0100  Transmit queueing
+                  iinnttrr        0x0200  Interrupt handling
+                  ttxx__ddoonnee     0x0400  Transmit completion
+                  rrxx__ssttaattuuss   0x0800  Receive completion
+                  ppkkttddaattaa     0x1000  Packet contents
+                  hhww          0x2000  Hardware status
+                  wwooll         0x4000  Wake-on-LAN status
+
+                  The precise meanings of these type flags differ between drivers.
+
+       --nn --uu ----sshhooww--nnffcc ----sshhooww--nnttuuppllee
+              Retrieves receive network flow classification options or rules.
+
+           rrxx--ffllooww--hhaasshh ttccpp44|uuddpp44|aahh44|eesspp44|ssccttpp44|ttccpp66|uuddpp66|aahh66|eesspp66|ssccttpp66
+                  Retrieves the hash options for the specified flow type.
+
+                  ttccpp44    TCP over IPv4
+                  uuddpp44    UDP over IPv4
+                  aahh44     IPSEC AH over IPv4
+                  eesspp44    IPSEC ESP over IPv4
+                  ssccttpp44   SCTP over IPv4
+                  ttccpp66    TCP over IPv6
+                  uuddpp66    UDP over IPv6
+                  aahh66     IPSEC AH over IPv6
+                  eesspp66    IPSEC ESP over IPv6
+                  ssccttpp66   SCTP over IPv6
+
+           rruullee _N Retrieves the RX classification rule with the given ID.
+
+       --NN --UU ----ccoonnffiigg--nnffcc ----ccoonnffiigg--nnttuuppllee
+              Configures receive network flow classification options or rules.
+
+           rrxx--ffllooww--hhaasshh ttccpp44|uuddpp44|aahh44|eesspp44|ssccttpp44|ttccpp66|uuddpp66|aahh66|eesspp66|ssccttpp66mm|vv|tt|ss|dd|ff|nn|rr...
+                  Configures the hash options for the specified flow type.
+
+                  mm   Hash on the Layer 2 destination address of the rx packet.
+                  vv   Hash on the VLAN tag of the rx packet.
+                  tt   Hash on the Layer 3 protocol field of the rx packet.
+                  ss   Hash on the IP source address of the rx packet.
+                  dd   Hash on the IP destination address of the rx packet.
+                  ff   Hash on bytes 0 and 1 of the Layer 4 header of the rx packet.
+                  nn   Hash on bytes 2 and 3 of the Layer 4 header of the rx packet.
+                  rr   Discard all packets of this flow type. When  this  option  is
+                      set, all other options are ignored.
+
+           ffllooww--ttyyppee eetthheerr||iipp44||ttccpp44||uuddpp44||ssccttpp44||aahh44||eesspp44||iipp66||ttccpp66||uuddpp66||aahh66||eesspp66||ssccttpp66
+                  Inserts or updates a classification rule for the specified flow type.
+
+                  eetthheerr   Ethernet
+                  iipp44     Raw IPv4
+                  ttccpp44    TCP over IPv4
+                  uuddpp44    UDP over IPv4
+                  ssccttpp44   SCTP over IPv4
+                  aahh44     IPSEC AH over IPv4
+                  eesspp44    IPSEC ESP over IPv4
+                  iipp66     Raw IPv6
+                  ttccpp66    TCP over IPv6
+                  uuddpp66    UDP over IPv6
+                  ssccttpp66   SCTP over IPv6
+                  aahh66     IPSEC AH over IPv6
+                  eesspp66    IPSEC ESP over IPv6
+
+           For  all fields that allow both a value and a mask to be specified, the mask may be specified im‐
+           mediately after the value using the mm keyword, or separately using the field  name  keyword  with
+           --mmaasskk appended, e.g. ssrrcc--mmaasskk.
+
+           ssrrcc _x_x::_y_y::_z_z::_a_a::_b_b::_c_c [mm _x_x::_y_y::_z_z::_a_a::_b_b::_c_c]
+                  Includes  the source MAC address, specified as 6 bytes in hexadecimal separated by colons,
+                  along with an optional mask.  Valid only for flow-type ether.
+
+           ddsstt _x_x::_y_y::_z_z::_a_a::_b_b::_c_c [mm _x_x::_y_y::_z_z::_a_a::_b_b::_c_c]
+                  Includes the destination MAC address, specified as 6 bytes  in  hexadecimal  separated  by
+                  colons, along with an optional mask.  Valid only for flow-type ether.
+
+           pprroottoo _N [mm _N]
+                  Includes  the  Ethernet  protocol number (ethertype) and an optional mask.  Valid only for
+                  flow-type ether.
+
+           ssrrcc--iipp _i_p_-_a_d_d_r_e_s_s [mm _i_p_-_a_d_d_r_e_s_s]
+                  Specify the source IP address of the incoming packet to match along with an optional mask.
+                  Valid for all IP based flow-types.
+
+           ddsstt--iipp _i_p_-_a_d_d_r_e_s_s [mm _i_p_-_a_d_d_r_e_s_s]
+                  Specify  the destination IP address of the incoming packet to match along with an optional
+                  mask.  Valid for all IP based flow-types.
+
+           ttooss _N [mm _N]
+                  Specify the value of the Type of Service field in the incoming packet to match along  with
+                  an optional mask.  Applies to all IPv4 based flow-types.
+
+           ttccllaassss _N [mm _N]
+                  Specify the value of the Traffic Class field in the incoming packet to match along with an
+                  optional mask.  Applies to all IPv6 based flow-types.
+
+           ll44pprroottoo _N [mm _N]
+                  Includes the layer 4 protocol number and optional mask.  Valid only for flow-types ip4 and
+                  ip6.
+
+           ssrrcc--ppoorrtt _N [mm _N]
+                  Specify the value of the source port field (applicable to TCP/UDP packets) in the incoming
+                  packet to match along with an optional mask.  Valid for flow-types ip4,  tcp4,  udp4,  and
+                  sctp4 and their IPv6 equivalents.
+
+           ddsstt--ppoorrtt _N [mm _N]
+                  Specify  the value of the destination port field (applicable to TCP/UDP packets)in the in‐
+                  coming packet to match along with an optional mask.  Valid for flow-types ip4, tcp4, udp4,
+                  and sctp4 and their IPv6 equivalents.
+
+           ssppii _N [mm _N]
+                  Specify  the  value of the security parameter index field (applicable to AH/ESP packets)in
+                  the incoming packet to match along with an optional mask.  Valid for flow-types ip4,  ah4,
+                  and esp4 and their IPv6 equivalents.
+
+           ll44ddaattaa _N [mm _N]
+                  Specify  the  value  of the first 4 Bytes of Layer 4 in the incoming packet to match along
+                  with an optional mask.  Valid for ip4 and ip6 flow-types.
+
+           vvllaann--eettyyppee _N [mm _N]
+                  Includes the VLAN tag Ethertype and an optional mask.
+
+           vvllaann _N [mm _N]
+                  Includes the VLAN tag and an optional mask.
+
+           uusseerr--ddeeff _N [mm _N]
+                  Includes 64-bits of user-specific data and an optional mask.
+
+           ddsstt--mmaacc _x_x::_y_y::_z_z::_a_a::_b_b::_c_c [mm _x_x::_y_y::_z_z::_a_a::_b_b::_c_c]
+                  Includes the destination MAC address, specified as 6 bytes  in  hexadecimal  separated  by
+                  colons, along with an optional mask.  Valid for all IP based flow-types.
+
+           aaccttiioonn _N
+                  Specifies the Rx queue to send packets to, or some other action.
+
+                  --11            Drop the matched flow
+                  --22            Use the matched flow as a Wake-on-LAN filter
+                  00 oorr hhiigghheerr   Rx queue to route the flow
+
+           ccoonntteexxtt _N
+                  Specifies the RSS context to spread packets over multiple queues; either 00 for the default
+                  RSS context, or a value returned by eetthhttooooll --XX _._._. ccoonntteexxtt nneeww.
+
+           vvff _N   Specifies the Virtual Function the filter applies to. Not compatible with action.
+
+           qquueeuuee _N
+                  Specifies the Rx queue to send packets to. Not compatible with action.
+
+           lloocc _N  Specify the location/ID to insert the rule. This will overwrite any rule present  in  that
+                  location and will not go through any of the rule ordering process.
+
+           ddeelleettee _N
+                  Deletes the RX classification rule with the given ID.
+
+       --ww ----ggeett--dduummpp
+              Retrieves  and  prints  firmware dump for the specified network device.  By default, it prints
+              out the dump flag, version and length of the dump data.  When _d_a_t_a is indicated, then  ethtool
+              fetches the dump data and directs it to a _f_i_l_e_.
+
+       --WW ----sseett--dduummpp
+              Sets the dump flag for the device.
+
+       --TT ----sshhooww--ttiimmee--ssttaammppiinngg
+              Show the device's time stamping capabilities and associated PTP hardware clock.
+
+       --xx ----sshhooww--rrxxffhh--iinnddiirr ----sshhooww--rrxxffhh
+              Retrieves the receive flow hash indirection table and/or RSS hash key.
+
+       --XX ----sseett--rrxxffhh--iinnddiirr ----rrxxffhh
+              Configures the receive flow hash indirection table and/or RSS hash key.
+
+           hhkkeeyy   Sets  RSS  hash key of the specified network device. RSS hash key should be of device sup‐
+                  ported length.  Hash key format must be in xx:yy:zz:aa:bb:cc format meaning both the  nib‐
+                  bles of a byte should be mentioned even if a nibble is zero.
+
+           hhffuunncc  Sets  RSS hash function of the specified network device.  List of RSS hash functions which
+                  kernel supports is shown as a part of the --show-rxfh command output.
+
+           ssttaarrtt _N
+                  For the eeqquuaall and wweeiigghhtt options, sets the starting receive queue for spreading  flows  to
+                  _N.
+
+           eeqquuaall _N
+                  Sets  the  receive  flow hash indirection table to spread flows evenly between the first _N
+                  receive queues.
+
+           wweeiigghhtt _W_0 _W_1 ...
+                  Sets the receive flow hash indirection table to spread flows between  receive  queues  ac‐
+                  cording to the given weights.  The sum of the weights must be non-zero and must not exceed
+                  the size of the indirection table.
+
+           ddeeffaauulltt
+                  Sets the receive flow hash indirection table to its default value.
+
+           ccoonntteexxtt _C_T_X | nneeww
+                  Specifies an RSS context to act on; either nneeww to allocate a new RSS context,  or  _C_T_X,  a
+                  value returned by a previous _._._. ccoonntteexxtt nneeww.
+
+           ddeelleettee Delete the specified RSS context.  May only be used in conjunction with ccoonntteexxtt and a non-
+                  zero _C_T_X value.
+
+       --ff ----ffllaasshh
+              Write a firmware image to flash or other non-volatile memory on the device.
+
+           _f_i_l_e   Specifies the filename of the firmware image.  The firmware must first be installed in one
+                  of  the  directories where the kernel firmware loader or firmware agent will look, such as
+                  /lib/firmware.
+
+           _N      If the device stores multiple firmware images in separate regions of non-volatile  memory,
+                  this  parameter  may  be used to specify which region is to be written.  The default is 0,
+                  requesting that all regions are written.  All other values are driver-dependent.
+
+       --ll ----sshhooww--cchhaannnneellss
+              Queries the specified network device for the numbers of channels it has.  A channel is an  IRQ
+              and the set of queues that can trigger that IRQ.
+
+       --LL ----sseett--cchhaannnneellss
+              Changes the numbers of channels of the specified network device.
+
+           rrxx _N   Changes the number of channels with only receive queues.
+
+           ttxx _N   Changes the number of channels with only transmit queues.
+
+           ootthheerr _N
+                  Changes the number of channels used only for other purposes e.g. link interrupts or SR-IOV
+                  co-ordination.
+
+           ccoommbbiinneedd _N
+                  Changes the number of multi-purpose channels.
+
+       --mm ----dduummpp--mmoodduullee--eeeepprroomm ----mmoodduullee--iinnffoo
+              Retrieves and if possible decodes the EEPROM from plugin modules,  e.g  SFP+,  QSFP.   If  the
+              driver  and  module  support  it, the optical diagnostic information is also read and decoded.
+              When either one of _p_a_g_e_, _b_a_n_k or _i_2_c parameters is specified, dumps only of a single  page  or
+              its  portion is allowed. In such a case _o_f_f_s_e_t and _l_e_n_g_t_h parameters are treated relatively to
+              EEPROM page boundaries.
+
+       ----sshhooww--pprriivv--ffllaaggss
+              Queries the specified network device for its private flags.  The names and meanings of private
+              flags (if any) are defined by each network device driver.
+
+       ----sseett--pprriivv--ffllaaggss
+              Sets the device's private flags as specified.
+
+           _f_l_a_g oonn|ooffff Sets the state of the named private flag.
+
+       ----sshhooww--eeeeee
+              Queries  the  specified network device for its support of Energy-Efficient Ethernet (according
+              to the IEEE 802.3az specifications)
+
+       ----sseett--eeeeee
+              Sets the device EEE behaviour.
+
+           eeeeee oonn|ooffff
+                  Enables/disables the device support of EEE.
+
+           ttxx--llppii oonn|ooffff
+                  Determines whether the device should assert its Tx LPI.
+
+           aaddvveerrttiissee _N
+                  Sets the speeds for which the device should advertise EEE capabilities.  Values are as for
+                  ----cchhaannggee aaddvveerrttiissee
+
+           ttxx--ttiimmeerr _N
+                  Sets  the amount of time the device should stay in idle mode prior to asserting its Tx LPI
+                  (in microseconds). This has meaning only when Tx LPI is enabled.
+
+       ----sseett--pphhyy--ttuunnaabbllee
+              Sets the PHY tunable parameters.
+
+           ddoowwnnsshhiifftt oonn|ooffff
+                  Specifies whether downshift should be enabled.
+
+                  ccoouunntt _N
+                      Sets the PHY downshift re-tries count.
+
+           ffaasstt--lliinnkk--ddoowwnn oonn|ooffff
+                  Specifies whether Fast Link Down should be enabled and time until link down  (if  support‐
+                  ed).
+
+                  mmsseeccss _N
+                      Sets the period after which the link is reported as down. Note that the PHY may choose
+                      the closest supported value. Only on reading back the tunable do you get the actual value.
+
+           eenneerrggyy--ddeetteecctt--ppoowweerr--ddoowwnn oonn|ooffff
+                  Specifies  whether Energy Detect Power Down (EDPD) should be enabled (if supported).  This
+                  will put the RX and TX circuit blocks into a low power mode, and the PHY will wake up  pe‐
+                  riodically to send link pulses to avoid any lock-up situation with a peer PHY that may al‐
+                  so have EDPD enabled. By default, this setting will also enable the periodic  transmission
+                  of TX pulses.
+
+                  mmsseeccss _N
+                      Some PHYs support configuration of the wake-up interval to send TX pulses.
+                      This setting allows the control of this interval, and 0 disables TX pulses
+                      if the PHY supports this. Disabling TX pulses can create a lock-up situation
+                      where neither of the PHYs wakes the other one. If unspecified the default
+                      value (in milliseconds) will be used by the PHY.
+
+       ----ggeett--pphhyy--ttuunnaabbllee
+              Gets the PHY tunable parameters.
+
+           ddoowwnnsshhiifftt
+                  For  operation  in  cabling environments that are incompatible with 1000BASE-T, PHY device
+                  provides an automatic link speed downshift operation.  Link speed downshift after N failed
+                  1000BASE-T auto-negotiation attempts.  Downshift is useful where cable does not have the 4
+                  pairs instance.
+
+                  Gets the PHY downshift count/status.
+
+           ffaasstt--lliinnkk--ddoowwnn
+                  Depending on the mode it may take 0.5s - 1s until a broken link is reported as  down.   In
+                  certain  use  cases a link-down event needs to be reported as soon as possible.  Some PHYs
+                  support a Fast Link Down Feature and may allow configuration of the delay before a  broken
+                  link is reported as being down.
+
+                  Gets the PHY Fast Link Down status / period.
+
+           eenneerrggyy--ddeetteecctt--ppoowweerr--ddoowwnn
+                  Gets the current configured setting for Energy Detect Power Down (if supported).
+
+       ----ggeett--ttuunnaabbllee
+              Get the tunable parameters.
+
+           rrxx--ccooppyybbrreeaakk
+                  Get the current rx copybreak value in bytes.
+
+           ttxx--ccooppyybbrreeaakk
+                  Get the current tx copybreak value in bytes.
+
+           ppffcc--pprreevveennttiioonn--ttoouutt
+                  Get the current pfc prevention timeout value in msecs.
+
+       ----sseett--ttuunnaabbllee
+              Set driver's tunable parameters.
+
+           rrxx--ccooppyybbrreeaakk _N
+                  Set the rx copybreak value in bytes.
+
+           ttxx--ccooppyybbrreeaakk _N
+                  Set the tx copybreak value in bytes.
+
+           ppffcc--pprreevveennttiioonn--ttoouutt _N
+                  Set pfc prevention timeout in msecs. Value of 0 means disable and 65535 means auto.
+
+       ----rreesseett
+              Reset hardware components specified by flags and components listed below
+
+           ffllaaggss _N
+                  Resets the components based on direct flags mask
+
+           mmggmmtt   Management processor
+
+           iirrqq    Interrupt requester
+
+           ddmmaa    DMA engine
+
+           ffiilltteerr Filtering/flow direction
+
+           ooffffllooaadd
+                  Protocol offload
+
+           mmaacc    Media access controller
+
+           pphhyy    Transceiver/PHY
+
+           rraamm    RAM shared between multiple components aapp Application Processor
+
+           ddeeddiiccaatteedd
+                  All components dedicated to this interface
+
+           aallll    All components used by this interface, even if shared
+
+       ----sshhooww--ffeecc
+              Queries the specified network device for its support of Forward Error Correction.
+
+       ----sseett--ffeecc
+              Configures Forward Error Correction for the specified network device.
+
+              Forward  Error Correction modes selected by a user are expected to be persisted after any hot‐
+              plug events. If a module is swapped that does not support the current FEC mode, the driver  or
+              firmware  must  take  the link down administratively and report the problem in the system logs
+              for users to correct.
+
+           eennccooddiinngg aauuttoo|ooffff|rrss|bbaasseerr|llllrrss [...]
+
+                  Sets the FEC encoding for the device.  Combinations of options are specified as e.g.   eenn‐‐
+                  ccooddiinngg aauuttoo rrss ; the semantics of such combinations vary between drivers.
+
+                  aauuttoo    Use the driver's default encoding
+                  ooffff     Turn off FEC
+                  RRSS      Force RS-FEC encoding
+                  BBaasseeRR   Force BaseR encoding
+                  LLLLRRSS    Force LLRS-FEC encoding
+
+       --QQ||----ppeerr--qquueeuuee
+              Applies provided sub command to specific queues.
+
+           qquueeuuee__mmaasskk %%xx
+                  Sets  the  specific queues which the sub command is applied to.  If queue_mask is not set,
+                  the sub command will be applied to all queues.
+
+           ssuubb__ccoommmmaanndd
+                  Sub command to apply. The supported sub commands include --show-coalesce and --coalesce.
+
+       q.B --cable-test
+              Perform a cable test and report the results. What results are returned depends on the capabil‐
+              ities  of the network interface. Typically open pairs and shorted pairs can be reported, along
+              with pairs being O.K. When a fault is detected the approximate distance to the  fault  may  be
+              reported.
+
+       ----ccaabbllee--tteesstt--ttddrr
+              Perform  a cable test and report the raw Time Domain Reflectometer data.  A pulse is sent down
+              a cable pair and the amplitude of the reflection, for a given distance, is reported.  A  break
+              in  the  cable returns a big reflection. Minor damage to the cable returns a small reflection.
+              If the cable is shorted, the amplitude of the reflection can be negative. By default, data  is
+              returned  for lengths between 0 and 150m at 1m steps, for all pairs. However parameters can be
+              passed to restrict the collection of data. It should be noted, that the interface  will  round
+              the  distances  to whatever granularity is actually implemented. This is often 0.8 of a meter.
+              The results should include the actual rounded first and last distance and step size.
+
+           ffiirrsstt  NN
+                  Distance along the cable, in meters, where the first measurement should be made.
+
+           llaasstt  NN
+                  Distance along the cable, in meters, where the last measurement should be made.
+
+           sstteepp  NN
+                  Distance, in meters, between each measurement.
+
+           ppaaiirr  NN
+                  Which pair should be measured. Typically a cable has 4 pairs. 0 = Pair A, 1 = Pair B, ...
+
+       ----mmoonniittoorr
+              Listens to netlink notification and displays them.
+
+           _c_o_m_m_a_n_d
+                  If argument matching a command is used, ethtool only shows  notifications  of  this  type.
+                  Without such argument or with --all, all notification types are shown.
+
+           _d_e_v_n_a_m_e
+                  If a device name is used as argument, only notification for this device are shown. Default
+                  is to show notifications for all devices.
+
+       ----sshhooww--ttuunnnneellss
+              Show tunnel-related device capabilities and state.  List UDP ports kernel has  programmed  the
+              device to parse as VxLAN, or GENEVE tunnels.
+
+BBUUGGSS
+       Not supported (in part or whole) on all network drivers.
+
+AAUUTTHHOORR
+       eetthhttooooll was written by David Miller.
+
+       Modifications by Jeff Garzik, Tim Hockin, Jakub Jelinek, Andre Majorel, Eli Kupermann, Scott Feldman,
+       Andi Kleen, Alexander Duyck, Sucheta Chakraborty, Jesse Brandeburg, Ben Hutchings, Scott Branden.
+
+AAVVAAIILLAABBIILLIITTYY
+       eetthhttooooll is available from ⟨http://www.kernel.org/pub/software/network/ethtool/⟩
+
+Ethtool version 5.16                            January 2022                                      ETHTOOL(8)
