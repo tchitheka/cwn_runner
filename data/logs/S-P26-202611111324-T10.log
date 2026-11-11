@@ -1,0 +1,4 @@
+Applying netem on enx00e04c507970: loss 15%, for 4 minute(s).
+This drops 15% of ALL traffic the gateway sends to the internet during the test, not just the QoE probe.
+Active. Will auto-clear in 4 minute(s). Ctrl+C clears it immediately.
+Terminated

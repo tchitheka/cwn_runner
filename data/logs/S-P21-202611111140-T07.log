@@ -1,0 +1,13 @@
+
+Scheduling memory fault (target=8% available, auto-clears after 4 minute(s))...
+Running remotely on root@192.168.1.101 via SSH...
+launched with PID 30210
+
+Fault scheduled. No further commands needed, cleanup happens automatically.
+
+Check progress:
+  ssh root@192.168.1.101 'cat /tmp/memfill_test.log'
+  ssh root@192.168.1.101 'cat /proc/meminfo | head -3'
+
+To cancel early instead of waiting for auto-cleanup:
+  ssh root@192.168.1.101 'rm -f /mnt/memfill/fill_*; umount /mnt/memfill'
